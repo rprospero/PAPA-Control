@@ -63,11 +63,11 @@ if __name__=='__main__':
     z,ze = spectrum(zup,zdown)
 
     y = np.log(s/z)/np.arange(0,20,0.1)**2
-    ye = s/z/np.arange(0,20,0.1)**2
+    ye = np.sqrt((se/s)**2+(ze/z)**2)/np.arange(0,20,0.1)**2
 
-#    plt.errorbar(np.arange(0,20,0.1),s/z,xerr=0,yerr=ze)
-#    plt.ylim(0,1)
-#    plt.show()
-
-    plt.errorbar(np.arange(0,20,0.1),y,xerr=0,yerr=ye)
+    plt.errorbar(np.arange(0,20,0.1),s/z,xerr=0,yerr=np.sqrt(ze**2+se**2))
+    plt.ylim(0,2)
     plt.show()
+
+#    plt.errorbar(np.arange(0,20,0.1),y,xerr=0,yerr=ye)
+#    plt.show()
