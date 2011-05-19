@@ -1,0 +1,151 @@
+#+Title: PAPA Control Manual
+
+* Introduction
+
+This document servers as the main user manual for the control software
+for the PAPA detector.  The program was written for python 2.6 and
+requires the following libraries:
+
+ - [[http://ni.com][DaqMx]]: A library from National Instruments for speaking interfacing
+   with their digital IO cards.  Specifically, we use the nicaiu.dll
+   file.
+ - BmmServer4: A server program written by the SNS which records the
+   spectrum on the neutron beam monitor.  This program is part of the
+   SNS dcom system.
+ - [[http://numpy.org][NumPy]]: A numerical library for python
+ - [[http://pyserial.sourceforge.net/][PySerial]]: A python library for communicating over a computer's
+   serial port.
+ - Current Listener: A LabView program on the motor server which
+   controls the current in the power supplies.  An energetic grad
+   student should replace this with more python code in order to
+   condense us down to a single language.  Also, LabView VIs _hate_
+   text based source control.
+
+* Basic Usage
+
+The recommended way to run the control system is to load up Control.py
+into an interactive python prompt.  This can be done by using the -i
+command line switch on python.  To simplify this process, a batch file
+is kept on the desktop of the control computer which will do this
+loading automatically.
+
+Control.py defines a control object in the variable *c*.  This object
+is the main interface for controlling the instrument.  At any time,
+the command *help(c)* will display the documentation on all of the
+control object's member functions.
+
+To close the program, use the *exit()* function.  This will kill all
+of the detector processes and handle the shutdown of the resources
+acquired by the program.  Do not use the *quit()* command, as it will
+not kill the detector and instrument threads.
+
+* Power supplies
+
+The instrument uses two different types of Kepco power supplies.
+There are eight 20A/20V power supplies used to power the triangle
+coils and four 10A/20V power supplies for the remaining solenoids.
+The triangle supplies are controlled via the *triangle* member
+function, which takes the power supply's number and the desired
+current.  For instance, *c.triangle(3,-7)* sets the current in the
+third power supply to -7A.  The 10A power supplies are named
+*flipper*, *guides*, *phase*, and *sample* and can be adjust by the
+eponymous member function.  For instance, *c.triangle(4)* sets the
+current in the triangle power supply to 4A.
+
+* Making a polarization measurement
+
+  The *flippingrun* member function starts data collection on a
+  polarization measurement.  The function takes one argument: a tuple
+  that controls the amount of time spent in the spin up and spin down
+  states.  For instance, *c.flippingrun((1,3))* takes 120 seconds of
+  data in the first spin state, then 360 seconds of data in the second
+  before repeating the process.  The spin state is chosen by flipping
+  the current in the guides power supply.  As there is some overhead
+  involved in flipping the currents, longer runs may benefit from
+  having longer times given (e.g. *c.flippingrun((10,30))* would spend
+  1200 seconds in the first spin state and 3600 in the second).  For
+  the best statistics, the times should be chosen so that the ratio
+  between the time spent in the low count state to the time in the
+  high count state is equal to the square root of the flipping ration.
+
+  To end a measurement, use the *stop* member function.
+
+* Detector Control
+
+  It may become necessay to change the settings on the PAPA detector.
+  The current settings can be queried with the *query* member
+  function, while the values can be set through the
+  *detectorParameter* member function.  Global variables *q* and *d*
+  reference *query* and *detectorParameter*, respectively.
+
+  Here's a list of the parameters that can be read and adjusted:
+
+| Name                                | Command | Arguments | Read | Write | Comments |
+|-------------------------------------+---------+-----------+------+-------+----------|
+| shutter                             | SO      |         1 | T    | T     |          |
+| mode                                | AM      |         1 | T    | T     |          |
+| pulse strobe                        | PS      |         1 | T    | T     |          |
+| gate capture                        | GC      |         1 | T    | T     |          |
+| reset timer polarity                | RT      |         1 | T    | T     |          |
+|                                     |         |           |      |       |          |
+| power supply voltage                | PV      |         1 | T    | T     |          |
+| pmt power supply state              | PE      |         1 | T    | T     |          |
+| energy pmt power supply voltage     | EV      |         1 | T    | T     |          |
+| energy pmt power supply state       | EE      |         1 | T    | T     |          |
+| intensifier power supply voltage    | IV      |         1 | T    | T     |          |
+| intensifier power supply state      | IE      |         1 | T    | T     |          |
+|                                     |         |           |      |       |          |
+| trigger thresholds                  | TE      |         2 | T    | T     |          |
+| end event fraction for energy       | TF      |         1 | T    | T     |          |
+| trigger thresholds for papa strobe  | TP      |         2 | T    | T     |          |
+| end event fraction for papa strobe  | TQ      |         1 | T    | T     |          |
+| coincidence timer lead and lag      | CT      |         2 | T    | T     |          |
+|                                     |         |           |      |       |          |
+| offset for ADC channel A            | OA      |         1 | T    | T     |          |
+| offset for ADC channel B            | OB      |         1 | T    | T     |          |
+| offset for ADC channel C            | OC      |         1 | T    | T     |          |
+| offset for ADC channel D            | OD      |         1 | T    | T     |          |
+| channel A filter                    | ?FA     |           | T    | F     |          |
+| channel D filter                    | ?FD     |           | T    | F     |          |
+| gray constant                       | ?BA     |           | T    | F     |          |
+| bit shift                           | ?BS     |           | T    | F     |          |
+|                                     |         |           |      |       |          |
+| temperature set point for zone zero | ?TS0    |           | T    | F     |          |
+| temperature set point for zone one  | ?TS1    |           | T    | F     |          |
+| kp gain for zone zero               | KP0     |         1 | T    | T     |          |
+| kp gain for zone one                | KP1     |         1 | T    | T     |          |
+| ki for zone zero                    | KI0     |         1 | T    | T     |          |
+| ki for zone one                     | KI1     |         1 | T    | T     |          |
+| kd for zone zero                    | ?KD0    |           | T    | F     |          |
+| kd for zone one                     | ?KD1    |           | T    | F     |          |
+| temperature for zone zero           | ?TC0    |           | T    | F     |          |
+| temperature for zone one            | ?TC1    |           | T    | F     |          |
+|                                     |         |           |      |       |          |
+| gain for X0                         | GX0     |         1 | T    | T     |          |
+| gain for X1                         | GX1     |         1 | T    | T     |          |
+| gain for X2                         | GX2     |         1 | T    | T     |          |
+| gain for X3                         | GX3     |         1 | T    | T     |          |
+| gain for X4                         | GX4     |         1 | T    | T     |          |
+| gain for X5                         | GX5     |         1 | T    | T     |          |
+| gain for X6                         | GX6     |         1 | T    | T     |          |
+| gain for X7                         | GX7     |         1 | T    | T     |          |
+| gain for X8                         | GX8     |         1 | T    | T     |          |
+| gain for X9                         | GX9     |         1 | T    | T     |          |
+| gain for Y0                         | GY0     |         1 | T    | T     |          |
+| gain for Y1                         | GY1     |         1 | T    | T     |          |
+| gain for Y2                         | GY2     |         1 | T    | T     |          |
+| gain for Y3                         | GY3     |         1 | T    | T     |          |
+| gain for Y4                         | GY4     |         1 | T    | T     |          |
+| gain for Y5                         | GY5     |         1 | T    | T     |          |
+| gain for Y6                         | GY6     |         1 | T    | T     |          |
+| gain for Y7                         | GY7     |         1 | T    | T     |          |
+| gain for Y8                         | GY8     |         1 | T    | T     |          |
+| gain for Y9                         | GY9     |         1 | T    | T     |          |
+| gain for strobe pmt                 | GS      |         1 | T    | T     |          |
+| gain for energy pmt                 | GE      |         1 | T    | T     |          |
+| gain for threshold channel          | GT      |         1 | T    | T     |          |
+| ADC offset voltage                  | AV      |         1 | T    | T     |          |
+|                                     |         |           |      |       |          |
+| serial number                       | ?SN     |           | T    | F     |          |
+| version                             | ?VS     |           | T    | F     |          |
+
