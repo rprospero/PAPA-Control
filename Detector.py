@@ -129,26 +129,8 @@ serialWrites = {#Data Acquisition
              'ki for zone zero':('KI0',1),
              'ki for zone one':('KI1',1),
              #Analog Channel Gains And Settings
-             'gain for X0':('GX0',1),
-             'gain for X1':('GX1',1),
-             'gain for X2':('GX2',1),
-             'gain for X3':('GX3',1),
-             'gain for X4':('GX4',1),
-             'gain for X5':('GX5',1),
-             'gain for X6':('GX6',1),
-             'gain for X7':('GX7',1),
-             'gain for X8':('GX8',1),
-             'gain for X9':('GX9',1),
-             'gain for Y0':('GY0',1),
-             'gain for Y1':('GY1',1),
-             'gain for Y2':('GY2',1),
-             'gain for Y3':('GY3',1),
-             'gain for Y4':('GY4',1),
-             'gain for Y5':('GY5',1),
-             'gain for Y6':('GY6',1),
-             'gain for Y7':('GY7',1),
-             'gain for Y8':('GY8',1),
-             'gain for Y9':('GY9',1),
+             'gain for X':('GX',2),
+             'gain for Y':('GY',2),
              'gain for strobe pmt':('GS',1),
              'gain for energy pmt':('GE',1),
              'gain for threshold channel':('GT',1),
@@ -208,7 +190,7 @@ class Detector:
                                      timeout=0)
         self.running = False#Are we taking data?
         self.getStatus()
-        self.powerOn()
+        #self.powerOn()
 
     def powerOn(self):
         self.setParam('pmt power supply state',1)        
@@ -382,7 +364,7 @@ class Detector:
     def __del__(self):
         """Destructor for the detector object"""
         print("Task Stopped")
-        self.powerOff()
+        #self.powerOff()
         self.ser.close()        
         if self.taskHandle.value != 0:
             if self.running:
@@ -430,6 +412,13 @@ class Detector:
         if t!=command+b'OK\r':
             print(t)
             raise RuntimeError('Failed to set %s' % param)
+        print command
+        print t
+        if(param[:10] == "gain for X" or param[:10] == "gain for Y"):
+            param += str(val[0])
+            val = val[1]
+            print param
+            print val
         self.status[param]=val
         return
 
