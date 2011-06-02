@@ -26,6 +26,7 @@ SET_TRIPLE=330
 SET_FLIPPER_EFFICIENCY=340
 SET_CUR_SCAN=350
 SET_THRESH_SCAN=360
+SET_GAIN_SCAN=370
 
 def mailmessage(subject,message):
     fromaddress="Sesame.Beamline@gmail.com"
@@ -104,6 +105,24 @@ def currentscan(ratio,coils):
             coils.flipper(-1*coils.getFlipper())
             yield d
             coils.flipper(-1*coils.getFlipper())
+
+def makeGainScan(i):
+    xgains = [320,415,357,375,568,412,447,530,650,0]
+    ygains = [550,377,415,345,365,490,407,352,430,505]
+    print "Making Gain Scan"
+    def gainscan(ratio,coils):
+        print("Starting Gain Scan")
+        while True:
+            for (n,x,y) in zip(range(10),xgains,ygains):
+                print('Setting X%d and Y%d to ten'%(n,n))
+                i.setParam('gain for X',(n,10))
+                i.setParam('gain for Y',(n,10))
+                print("Yielded")
+                yield 30
+                print('Restoring X%d and Y%d from ten'%(n,n))
+                i.setParam('gain for X',(n,x))
+                i.setParam('gain for Y',(n,y))
+    return gainscan
 
 
 def makeThresholdScan(i):
@@ -195,6 +214,9 @@ def controlThunk(conn,steptime=120):
                 elif commval == SET_THRESH_SCAN:
                     print("Threshscan")
                     command = makeThresholdScan(i)
+                elif commval == SET_GAIN_SCAN:
+                    command = makeGainScan(i)
+                    print("Command Set")
                 else:
                     command = ones
         if running:
@@ -296,6 +318,8 @@ class Control:
         self.start(SET_CUR_SCAN,ratio)
     def threshscan(self):
         self.start(SET_THRESH_SCAN,(1,1))
+    def gainscan(self):
+        self.start(SET_GAIN_SCAN,(1,1))
         
     def stop(self):
         """Ends data collection"""
