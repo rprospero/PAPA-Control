@@ -24,6 +24,9 @@ class Instrument:
         self.det.directory(self.config.getDir())
         self.subrun=0
 
+    def getPassword(self):
+        return self.config.getPassword()
+
     def updateRunnumber(self):
         """Update to the next data run"""
         self.subrun=0

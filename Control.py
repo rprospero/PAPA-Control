@@ -28,11 +28,11 @@ SET_CUR_SCAN=350
 SET_THRESH_SCAN=360
 SET_GAIN_SCAN=370
 
-def mailmessage(subject,message):
+def mailmessage(subject,message,password):
     fromaddress="Sesame.Beamline@gmail.com"
     toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu","pstonaha@indiana.edu"]
     server = smtplib.SMTP_SSL("smtp.gmail.com",465)
-    server.login(fromaddress,"Sesame Beamline at IU")
+    server.login(fromaddress,password)
     server.sendmail(fromaddress,
                     toaddresses,
                     "FROM:\"SESAME Beamline\" <"+fromaddress+">\n"
@@ -143,6 +143,7 @@ def makeThresholdScan(i):
 def controlThunk(conn,steptime=120):
     """An infinite loop that controls the insturment and coils"""
     i = Instrument.Instrument()
+    password = i.getPassword()
     beamon = True
     coils = Coils.Coils()
     running = False
@@ -237,10 +238,10 @@ def controlThunk(conn,steptime=120):
                 mp["sample current"]=coils.getSample()
                 print("DEBUG: E-mail time")
                 if beamon and monitor_count/time < 16.0:
-                    mailmessage("LENS is down","I am not recieving many neutrons.  Is the beam off?")
+                    mailmessage("LENS is down","I am not recieving many neutrons.  Is the beam off?",password)
                     beamon=False
                 elif not beamon and monitor_count/time > 16.0:
-                    mailmessage("LENS is up","I am recieving neutrons again.")
+                    mailmessage("LENS is up","I am recieving neutrons again.",password)
                     beamon=True    
                 for tri in range(1,9):
                     mp["triangle %d"%tri]=coils.getTriangle(tri)

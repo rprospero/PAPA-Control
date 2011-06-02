@@ -19,7 +19,7 @@ class XMLConfig:
         runele = runnumber[0]
         #Current runnumber
         self.runnumber = int(runele.firstChild.nodeValue)
-        #Handle Data Director
+        #Handle Data Directory
         directory = dom.getElementsByTagName("DataDirectory")
         if len(directory) != 1:
             print(directory)
@@ -27,6 +27,12 @@ class XMLConfig:
         direle = directory[0]
         #Root directory for saving data runs
         self.dir = direle.firstChild.nodeValue
+        #Handle Password
+        self.password = dom.getElementsByTagName("Password")[0].firstChild.nodeValue
+
+    def getPassword(self):
+        """Gives the password for the e-mail message server"""
+        return self.password
 
     def nextRun(self):
         """Updates the config file for the next data run"""
