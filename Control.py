@@ -30,7 +30,9 @@ SET_GAIN_SCAN=370
 
 def mailmessage(subject,message,password):
     fromaddress="Sesame.Beamline@gmail.com"
-    toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu","pstonaha@indiana.edu"]
+    toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu",
+                 "pstonaha@indiana.edu","helkaise@indiana.edu",
+                 "8123205472@vtext.com"]
     server = smtplib.SMTP_SSL("smtp.gmail.com",465)
     server.login(fromaddress,password)
     server.sendmail(fromaddress,
@@ -99,7 +101,7 @@ def flipperefficiency(ratio,coils):
 def currentscan(ratio,coils):
     (n,d)=ratio
     while True:
-        for cur in [6 + x/10.0 for x in range(21)]:
+        for cur in [4 + x/20.0 for x in range(21)]:
             coils.phase(cur)
             yield n
             coils.flipper(-1*coils.getFlipper())
