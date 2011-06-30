@@ -93,7 +93,9 @@ def DetectorThunk(conn,dir='C:/PAPA Control/',datacount=1000):
                 opt,val=args
                 det.setParam(opt,val)
             elif cmd == QUERY:
-                print(det.status[args[0]])
+                conn.send(det.status[args[0]])
+                #print det.status[args[0]]
+
             else:
                 print("Did not recognize command %d"%cmd)
         if running:
@@ -171,6 +173,9 @@ class DetectorProcess:
     def query(self,option):
         """Change one of the detector's settings"""
         self.send((QUERY,(option,)))
+        while not self.conn.poll():
+            pass
+        return self.conn.recv()
 
 if __name__ == '__main__':
     dp = DetectorProcess()

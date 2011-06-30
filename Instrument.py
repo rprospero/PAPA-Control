@@ -81,7 +81,8 @@ class Instrument:
 
     def query(self,option):
         """Find the status of an instrument parameter"""
-        self.det.query(option)
+        return self.det.query(option)
+        
 
     def timedrun(self,time):
         """Collect data for a set number of seconds"""
