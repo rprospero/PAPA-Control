@@ -190,7 +190,7 @@ class Detector:
                                      timeout=0)
         self.running = False#Are we taking data?
         self.getStatus()
-        #self.powerOn()
+        self.powerOn()
 
     def powerOn(self):
         self.setParam('pmt power supply state',1)        
@@ -364,7 +364,7 @@ class Detector:
     def __del__(self):
         """Destructor for the detector object"""
         print("Task Stopped")
-        #self.powerOff()
+        self.powerOff()
         self.ser.close()        
         if self.taskHandle.value != 0:
             if self.running:
