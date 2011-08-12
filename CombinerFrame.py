@@ -20,7 +20,7 @@ class CombinerFrame(wx.Frame):
         #Create window contents
         self.listbox = wx.ListBox(self,-1,style=wx.LB_MULTIPLE,
                                   size=wx.Size(500,150))
-        self.currentbox =  wx.ListBox(self,-1,
+        self.currentbox =  wx.ListBox(self,-1,style=wx.LB_MULTIPLE,
                                   size=wx.Size(500,150))
         addbutton = wx.Button(self,wx.ID_ADD)
         removebutton = wx.Button(self,wx.ID_REMOVE)
@@ -93,18 +93,18 @@ class CombinerFrame(wx.Frame):
                 triangles = sorted(subrun.findall('Triangle'),
                                    key=lambda x:
                                        x.get('number'))
-                current = (subrun.find('Flipper').text,
-                           subrun.find('GuideFields').text,
-                           subrun.find('PhaseCoil').text,
-                           subrun.find('SampleCoil').text,
-                           triangles[0].text,
-                           triangles[1].text,
-                           triangles[2].text,
-                           triangles[3].text,
-                           triangles[4].text,
-                           triangles[5].text,
-                           triangles[6].text,
-                           triangles[7].text)
+                current = (subrun.find('Flipper').text.strip(),
+                           subrun.find('GuideFields').text.strip(),
+                           subrun.find('PhaseCoil').text.strip(),
+                           subrun.find('SampleCoil').text.strip(),
+                           triangles[0].text.strip(),
+                           triangles[1].text.strip(),
+                           triangles[2].text.strip(),
+                           triangles[3].text.strip(),
+                           triangles[4].text.strip(),
+                           triangles[5].text.strip(),
+                           triangles[6].text.strip(),
+                           triangles[7].text.strip())
                 subrun.set("Base",base)
                 if current in currents:
                     runsets[current].append(subrun)
@@ -125,10 +125,17 @@ class CombinerFrame(wx.Frame):
 
         minmon = float(self.monctrl.GetValue())#Monitor cutoff for live beam
 
-        index = self.currentbox.GetSelection()
-        key = eval(self.currentbox.GetItems()[index])
+        index = self.currentbox.GetSelections()
+        keys = [eval(self.currentbox.GetItems()[i]) for i in index]
 
-        runs = self.runsets[key]
+#        runlists = []
+#        for key in keys:
+#            runslists.join(self.runsets[key])
+
+        runs = [x for key in keys for x in self.runsets[key]]
+
+        print runs
+
         mon = np.zeros((1001,),dtype=np.int32)
         tottime = 0
         totmon = 0
