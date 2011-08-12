@@ -203,7 +203,7 @@ def controlThunk(conn,steptime=120):
                 else:
                     i.setParam(args[0],args[1])
             if cmd==QUERY:
-                i.query(args[0])
+                conn.send(i.query(args[0]))
             if cmd==SET_COMMAND:
                 commval = args[0]
                 if commval == SET_TRIPLE:
@@ -350,6 +350,9 @@ class Control:
     def query(self,parameter):
         """Prints out the value of the chosen status variable on the detector"""
         self.conn.send((QUERY,(parameter,)))
+        while not self.conn.poll():
+            sleep(0.01)
+        return self.conn.recv()
 
     def allOn(self):
         """Turn on all of the power supplies to a default value"""
