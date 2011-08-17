@@ -130,15 +130,15 @@ def makeGainScan(i):
 def makeThresholdScan(i):
     def thresholdscan(ratio,coils):
         print("Starting scan")
-        t = 30
+        t = 10
         while True:
             print("Thresold: %i" % t)
-            i.setParam('trigger thresholds',(t,1023))
-            for gain in range(25):
-                print("Gain: %i" % (gain*20+20))
-                i.setParam('gain for energy pmt',gain*20+20)
-                yield 1
-            t += 15
+            i.setParam('trigger thresholds for papa strobe',(t,1023))
+            for gain in range(20):
+                print("Gain: %i" % (gain*20+455))
+                i.setParam('gain for strobe pmt',gain*20+455)
+                yield 3
+            t += 10
     return thresholdscan
 
 
