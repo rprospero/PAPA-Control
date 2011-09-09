@@ -255,7 +255,7 @@ class PelFile:
 
         def readfileimage(self,path):
 		"""Reads a raw Pel File into memory."""
-                print("Loading PEL file"+path)
+                #print("Loading PEL file"+path)
                 start=clock()
                 statusfunc = self.statusfunc
                 with open(path,"rb") as infile:
@@ -264,7 +264,7 @@ class PelFile:
                     self.data = np.fromfile(infile,np.int64,-1)
                 infile.close()
                 stop=clock()
-                print((stop-start))
+                #print((stop-start))
 
 if __name__=="__main__":
         data = PelFile()
