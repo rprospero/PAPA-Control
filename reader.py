@@ -66,8 +66,8 @@ class PelFile:
                         "MCPPowerSupplyControlVoltageCommandGain " +
                         "MCPPowerSupplyControlVoltageCommandOffset " +
                         "MCPPowerSupplyVoltageEnable " +
-                        "x1Gain x2Gain x3Gain x4Gain x5Gain x6Gain x7Gain x8Gain x9Gain x10Gain " +
-                        "y1Gain y2Gain y3Gain y4Gain y5Gain y6Gain y7Gain y8Gain y9Gain y10Gain " +
+                        "x0Gain x1Gain x2Gain x3Gain x4Gain x5Gain x6Gain x7Gain x8Gain x9Gain " +
+                        "y0Gain y1Gain y2Gain y3Gain y4Gain y5Gain y6Gain y7Gain y8Gain y9Gain " +
                         "strobeGain EnergyGain ThresholdGain "+
                         "ADVoltageOffset ADAOffset ADBOffset ADCOffset ADDOffset "+
                         "StrobeTriggerMin StrobeTriggerMax StrobeEndEventFrac " +
