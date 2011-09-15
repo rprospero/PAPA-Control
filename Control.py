@@ -65,6 +65,7 @@ def flip(ratio,coils):
         coils.flipper(-1*coils.getFlipper())        
 #        coils.flipper(-1*coils.getFlipper())
         (n,d)=(d,n)
+        yield n #change added for Haiyang's desired flipping patter of +--+
 
 def triple(ratio, coils):
     (bsfa,bfsfa,bsa)=ratio
