@@ -24,18 +24,20 @@ class Coils:
 
     def set(self,cur,val):
         """Sets that value for one of the power supplies"""
+        s = socket.socket(socket.AF_INET,socket.SOCK_STREAM,socket.IPPROTO_TCP)
+        s.connect((self.HOST,self.PORT))
+        
         self.currents[cur]=val
         temp=struct.pack('>Bd',cur,val)
-        s = socket.socket(socket.AF_INET,socket.SOCK_STREAM,socket.IPPROTO_TCP)
         try:
-            s.connect((self.HOST,self.PORT))
+
             s.send(temp)
             result = s.recv(9)
-            sleep(15)
+            print result==temp
             print("Closing")
             s.close()
-            return result
-#            return 0
+#            return result
+            return 0
         except socket.error,err:
             print(err)
             s.close()
