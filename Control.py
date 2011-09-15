@@ -7,6 +7,8 @@ import smtplib
 from XMLManifest import XMLManifest
 import multiprocessing
 from time import sleep,clock,localtime,asctime
+import reader
+import numpy as np
 
 #Signals for the control process
 QUIT=0
@@ -27,12 +29,13 @@ SET_FLIPPER_EFFICIENCY=340
 SET_CUR_SCAN=350
 SET_THRESH_SCAN=360
 SET_GAIN_SCAN=370
+SET_TUNE=380
 
 def mailmessage(subject,message,password):
     fromaddress="Sesame.Beamline@gmail.com"
-    toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu",
-                 "pstonaha@indiana.edu","helkaise@indiana.edu",
-                 "8123205472@vtext.com"]
+    toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu"]#,
+#                 "pstonaha@indiana.edu","helkaise@indiana.edu",
+#                 "8123205472@vtext.com"]
     server = smtplib.SMTP_SSL("smtp.gmail.com",465)
     server.login(fromaddress,password)
     server.sendmail(fromaddress,
@@ -141,6 +144,105 @@ def makeThresholdScan(i):
             t += 10
     return thresholdscan
 
+def findMin(x,ylow,ycen,yhigh,h):
+    print "findMin"
+    return (4*x*ycen-(h+2*x)*ylow+(h-2*x)*yhigh)/(4*ycen-2*(ylow+yhigh))
+
+def readLatest(i):
+    print "Read Latest"
+    path = i.getPath()+("%04d"%i.subrun)+".pel"
+    print path
+    p = reader.PelFile(path)
+    data = np.sum(p.make3d(),axis=2) #make 2D map
+    return np.std(data)
+
+def makeBaser(i):    
+    gains = ["gain for X"+str(x) for x in range(9)]
+    gains.extend(["gain for Y"+str(x) for x in range(9)])
+    dict = {}
+    for gain in gains:
+        dict[gain] = i.query(gain)
+    def base(ratio,coils):
+        while True:
+            for gain in gains:
+                init = dict[gain]
+                for x in range(init-200,init+201,100):
+                    print gain
+                    print x
+                    i.setParam(gain[:-1],(int(gain[-1]),x))
+                    yield 7
+                i.setParam(gain[:-1],(int(gain[-1]),init))
+    return base
+
+def makeDumper(ins):
+    adcs = [[None,('gain for X',9),('gain for Y',9)],
+             [('gain for X',8),('gain for X',7),('gain for Y',7)],
+             [('gain for Y',8),('gain for X',6),('gain for Y',6)],
+             [('gain for X',5),('gain for X',4),('gain for Y',4)],
+             [('gain for Y',5),('gain for X',3),('gain for Y',3)],
+             [('gain for X',2),('gain for X',1),('gain for Y',1)],
+             [('gain for X',2),('gain for X',0),('gain for Y',0)]]
+    def dumper(ratio,coils):
+        for am in range(7):
+            ins.setParam('mode',am)
+            base = [None,None,None]
+            #record intial values
+            print("Record initial values")
+            for i in range(3):
+                if adcs[am][i] is not None:
+                    print adcs[am][i]
+                    print adcs[am][i][0]+str(adcs[am][i][1])
+                    base[i] = ins.query(adcs[am][i][0]+str(adcs[am][i][1]))
+            #scan the gain
+            print("Scan the gain")
+            for gain in range(100,800,100):
+                for adc in adcs[am]:
+                    if adc is not None:
+                        ins.setParam(adc[0],(adc[1],gain))
+                yield 6.0/120.0
+                sleep(5)
+            #return to initial value
+            for i in range(3):
+                if adc is not None:
+                    ins.setParam(adc[0],(adc[1],gain))
+        #We're finished, so just take a two year measurement
+        ins.setParam('mode',14)
+        yield 525600
+                
+    return dumper
+
+def makeTuner(i):
+    gains = ["gain for X"+str(x) for x in range(9)]
+    gains.extend(["gain for Y"+str(x) for x in range(9)])
+    dict = {}
+    def tune(ratio,coils):
+        h=100
+        while True:
+            for gain in gains:
+                base = i.query(gain)
+                print "Testing " + gain + " at " + str(base)
+                yield 2
+                ycen = readLatest(i)
+                print "Std:\t%f"%ycen
+                print "Testing " + gain + " at " + str(base-h)
+                i.setParam(gain[:-1],(int(gain[-1]),base-h))
+                yield 2
+                ylow = readLatest(i)
+                print "Std:\t%f"%ylow
+                print "Testing " + gain + " at " + str(base+h)
+                i.setParam(gain[:-1],(int(gain[-1]),base+h))
+                yield 2
+                yhigh = readLatest(i)
+                print "Std:\t%f"%yhigh
+                print "Set Complete"
+                newbase = int(findMin(base,ylow,ycen,yhigh,h))
+                newbase = min(900,max(100,newbase))
+                print "The new " + gain + " is " + str(newbase)
+                i.setParam(gain[:-1],(int(gain[-1]),newbase))
+            if h > 25:
+                h = h/2
+    return tune
+            
 
 def controlThunk(conn,steptime=120):
     """An infinite loop that controls the insturment and coils"""
@@ -220,6 +322,8 @@ def controlThunk(conn,steptime=120):
                 elif commval == SET_GAIN_SCAN:
                     command = makeGainScan(i)
                     print("Command Set")
+                elif commval == SET_TUNE:
+                    command = makeDumper(i)
                 else:
                     command = ones
         if running:
@@ -321,6 +425,8 @@ class Control:
         self.start(SET_CUR_SCAN,ratio)
     def threshscan(self):
         self.start(SET_THRESH_SCAN,(1,1))
+    def tune(self):
+        self.start(SET_TUNE,(1,1))
     def gainscan(self):
         self.start(SET_GAIN_SCAN,(1,1))
         
