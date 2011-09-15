@@ -35,10 +35,11 @@ if __name__=="__main__":
     count = len(A)/128 #this is an int
     rem = len(A) % 128
     print count
-    A = A[:-rem]
-    B = B[:-rem]
-    C = C[:-rem]
-    D = D[:-rem]
+    if rem != 0:
+        A = A[:-rem]
+        B = B[:-rem]
+        C = C[:-rem]
+        D = D[:-rem]
 
     A = np.reshape(A,(-1,128))
     B = np.reshape(B,(-1,128))
