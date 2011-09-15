@@ -344,10 +344,10 @@ def controlThunk(conn,steptime=120):
                 mp["sample current"]=coils.getSample()
                 print("DEBUG: E-mail time")
                 if beamon and monitor_count/time < 16.0:
-#                    mailmessage("LENS is down","I am not recieving many neutrons.  Is the beam off?",password)
+                    mailmessage("LENS is down","I am not recieving many neutrons.  Is the beam off?",password)
                     beamon=False
                 elif not beamon and monitor_count/time > 16.0:
- #                   mailmessage("LENS is up","I am recieving neutrons again.",password)
+                    mailmessage("LENS is up","I am recieving neutrons again.",password)
                     beamon=True    
                 for tri in range(1,9):
                     mp["triangle %d"%tri]=coils.getTriangle(tri)
