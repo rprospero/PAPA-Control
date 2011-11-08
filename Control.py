@@ -105,12 +105,14 @@ def flipperefficiency(ratio,coils):
 def currentscan(ratio,coils):
     (n,d)=ratio
     while True:
-        for cur in [4 + x/20.0 for x in range(21)]:
-            coils.phase(cur)
+        for cur in [4 + x/10.0 for x in range(21)]:
+            coils.triangle(7,cur)
             yield n
-            coils.flipper(-1*coils.getFlipper())
+#            coils.flipper(-1*coils.getFlipper())
+            coils.sample(-1*coils.getSample())
             yield d
-            coils.flipper(-1*coils.getFlipper())
+#            coils.flipper(-1*coils.getFlipper())
+            coils.sample(-1*coils.getSample())
 
 def makeGainScan(i):
     xgains = [320,415,357,375,568,412,447,530,650,0]
