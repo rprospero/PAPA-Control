@@ -10,10 +10,8 @@ def load(paths):
 
     for path in paths:
         base = os.path.dirname(path)
-        print(base)
         manifest = XMLManifest(path,0)
         subruns = manifest.getRuns(base)
-        print(subruns)
         for subrun in subruns:
             triangles = sorted(subrun.findall('Triangle'),
                                key=lambda x:
@@ -61,8 +59,9 @@ def save(path,minmon,keys,runsets):
             monpath = os.path.join(base,r.find('Monitor').get('path'))
             detpath = os.path.join(base,r.find('Detector').get('path'))
             if time <= 0 or moncount/time < minmon:
-                print("Dropping subrun %s as the count rate is too low"%num)
+#                print("Dropping subrun %s as the count rate is too low"%num)
                 continue
+            print path
             tottime += time
             totmon += moncount
             totdet += detcount

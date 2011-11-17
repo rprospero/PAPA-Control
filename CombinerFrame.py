@@ -80,7 +80,9 @@ class CombinerFrame(wx.Frame):
         """Combine the manifests"""
         paths = self.listbox.GetItems()
 
-        currents,runsets = Combiner.load(paths)
+        runsets = Combiner.load(paths)
+
+        currents = set(runsets.keys())
 
 
         for current in currents:
