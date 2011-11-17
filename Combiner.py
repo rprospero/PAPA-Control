@@ -36,7 +36,7 @@ def load(paths):
             else:
                 currents.add(current)
                 runsets[current]=[subrun]
-    return (currents,runsets)
+    return runsets
 
 def save(path,minmon,keys,runsets):
     runs = [x for key in keys for x in runsets[key]]
