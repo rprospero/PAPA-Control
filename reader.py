@@ -21,11 +21,11 @@ class PelFile:
         data = np.ndarray(shape=(0),dtype=np.int64)#Raw detector data
 
         def __init__(self,file=""):
-		"""Create a PelFile"""
+                """Create a PelFile"""
                 if(file!=""):
                         self.readfileimage(file)
-#		self.time=None
-#		self.monitor=None
+#               self.time=None
+#               self.monitor=None
 
 #         def loadmon(self,file):
 #                 with open(file,"r") as infile:
@@ -40,7 +40,7 @@ class PelFile:
                 
 
         def parseHeader(self,bytes):
-		"""Turn the Pel file header into structured data"""
+                """Turn the Pel file header into structured data"""
                 Header = namedtuple(
                         'Header',
                         "pel endian FileMajVer FileMinVer BytesPerSample " +
@@ -172,7 +172,7 @@ class PelFile:
 
         #Remember to use in-place operations to save on memory overhead
         def convertTime(self,timearr):
-		"""Convert an array of TOF data into neutron wavelengths."""
+                """Convert an array of TOF data into neutron wavelengths."""
                 #convert timearr into microseconds
                 timearr *= (1.0/75e6) * 1e6
                 #convert timearr into wavelength
@@ -183,7 +183,7 @@ class PelFile:
                 return timearr
 
         def make3d(self):
-		"""Make a 3D histogram from the raw data."""
+                """Make a 3D histogram from the raw data."""
                 print("Cubing Image")
                 start=clock()                
                 statusfunc = self.statusfunc
@@ -193,41 +193,46 @@ class PelFile:
 
                 cube = np.zeros([self.imDim,self.imDim,200],dtype=np.float32)
 
-		#If there's no data, return an empty array
+                #If there's no data, return an empty array
                 if l==0:
                         return cube
-                xarr = np.asarray((self.data & 0x7FF)/2,np.uint16)#x
-                yarr = np.asarray((self.data & 0x3FF800)>>12,np.uint16)#y
-		yarr = 512-yarr #correct for vertical flip
-                timearr = self.convertTime((self.data >> 32) & 0x7FFFFFFF)#time
+                xarr = np.asarray((self.data & 0x7FF),np.uint16)#x
+                yarr = np.asarray((self.data & 0x3FF800)>>11,np.uint16)#y
                 
-		#Loop over 20 angstroms in steps of 0.1 angstroms
-                for i in range(0,200,1):
-			#Get a list of the indices where the neutron wavelength
-			#is within the appropriate time bin
-                        cond = np.where((timearr >= i) & (timearr < (i+1)))
-                        if(len(cond[0])>0):
-                                x = xarr[cond]
-                                y = yarr[cond]
-				#Histogram the x and y data
-                                (nxt,_,_) = np.histogram2d(x,y,
-							   bins=[self.imDim,
-								 self.imDim])
-                                cube[:,:,i] = nxt
-                                statusfunc((i+1)*5)#update out progress
+                #### Test of Energy Data
+                earr = np.asarray((self.data >> 22) & 0x1FF,np.uint16)
+
+                yarr = 512-yarr #correct for vertical flip
+                timearr = self.convertTime((self.data >> 32) & 0x7FFFFFFF)#time
+                timearr = np.asarray(np.floor(timearr),np.uint16)
+                
+                #Loop over 20 angstroms in steps of 0.1 angstroms
+                np.seterr(over='raise')
+                xarr %= 512
+                yarr %= 512
+                count = len(xarr)
+                for i in range(count):
+                        if 0 < timearr[i] < 200:
+                                cube[xarr[i],yarr[i],timearr[i]] += 1
+                        if i%10000 == 0:
+                                statusfunc(i*1000/count)
                 stop=clock()
+                del xarr
+                del yarr
+                del timearr
+
                 print((stop-start))                        
                 return cube
 
         
         def spectrum(self,output):
-		"""Save the neutron spectrum to a text file"""
+                """Save the neutron spectrum to a text file"""
                 with open(output,'w') as of:
                         timearr = (self.data >> 32) & 0x7FFFFFFF
                         timearr = self.convertTime(timearr)
                         timearr /= 10
 
-			#Get the spectrum and wavelengths
+                        #Get the spectrum and wavelengths
                         (spec,lmbda) = np.histogram(timearr,bins=np.arange(2.0,50.0,0.1))
                         hist = np.column_stack((lmbda[1:],spec))
                         for point in hist:
@@ -237,25 +242,25 @@ class PelFile:
                 
 
         def statusfunc(self,x):
-		"""Status update function
+                """Status update function
 
-		This function is called to tell other program components
-		the progress in loading the PelFile.  The progress is given
-		on a scale of 0 to 1000.  This function should be overwritten
-		by whatever function is loading the pel file to do what it
-		needs with the load time information.
+                This function is called to tell other program components
+                the progress in loading the PelFile.  The progress is given
+                on a scale of 0 to 1000.  This function should be overwritten
+                by whatever function is loading the pel file to do what it
+                needs with the load time information.
 
-		"""
+                """
                 return
 
         def getgains(self,h):
-		"""Pulls the PMT gains information into a numpy array"""
+                """Pulls the PMT gains information into a numpy array"""
                 return np.array([h.x1Gain,h.x2Gain,h.x3Gain,h.x4Gain,h.x5Gain,h.x6Gain,h.x7Gain,h.x8Gain,h.x9Gain,h.x10Gain,
                         h.y1Gain,h.y2Gain,h.y3Gain,h.y4Gain,h.y5Gain,h.y6Gain,h.y7Gain,h.y8Gain,h.y9Gain,h.y10Gain],np.double)
 
         def readfileimage(self,path):
-		"""Reads a raw Pel File into memory."""
-                #print("Loading PEL file"+path)
+                """Reads a raw Pel File into memory."""
+                print("Loading PEL file"+path)
                 start=clock()
                 statusfunc = self.statusfunc
                 with open(path,"rb") as infile:
@@ -264,7 +269,7 @@ class PelFile:
                     self.data = np.fromfile(infile,np.int64,-1)
                 infile.close()
                 stop=clock()
-                #print((stop-start))
+                print((stop-start))
 
 if __name__=="__main__":
         data = PelFile()
