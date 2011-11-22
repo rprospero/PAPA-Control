@@ -14,12 +14,12 @@ from graphframe import GraphFrame
 
 class MonFile:
     """Manages a file which holds neutron monitor data."""
-    def __init__(self,file=None):
+    def __init__(self,file=None,wxon=True):
         """Creates a MonFile object"""
         self.time = None #The amount of time that the monitor ran.
         self.spec = None #The neutron spectrum detected on the monitor.
         if file is not None:
-            self.load(file)
+            self.load(file,wxon)
 
     def convertTime(self,t):
         """Converts a numpy array of time bins into neutron wavelengths"""
@@ -31,7 +31,7 @@ class MonFile:
         t *= 3.956034e-7/(distanceToMonitor+distanceToG4)/1e-10*1e-6*10 #The last 10 is to handle fractional angstroms
         return t
 
-    def load(self,file):
+    def load(self,file,wxon=True):
         """Load data from the file given in the path string."""
         with open(file,"r") as infile:
             infile.readline() # drop first line
@@ -49,6 +49,7 @@ class MonFile:
         x = self.convertTime(x)
         f = ip.interp1d(x,y) #Interpolation of neutron monitor
         xs = range(200)
-        graph = GraphFrame(None,"Monitor")
-        graph.plot(np.arange(0.0,20.0,0.1),f(xs))
+        if(wxon):
+            graph = GraphFrame(None,"Monitor")
+            graph.plot(np.arange(0.0,20.0,0.1),f(xs))
         self.spec = np.expand_dims(np.expand_dims(f(xs),axis=0),axis=0)
