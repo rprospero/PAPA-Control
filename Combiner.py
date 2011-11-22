@@ -61,7 +61,6 @@ def save(path,minmon,keys,runsets):
             if time <= 0 or moncount/time < minmon:
 #                print("Dropping subrun %s as the count rate is too low"%num)
                 continue
-            print path
             tottime += time
             totmon += moncount
             totdet += detcount
