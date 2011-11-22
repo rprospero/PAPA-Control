@@ -3,6 +3,7 @@ from monfile import MonFile
 import matplotlib.pyplot as plt
 import Combiner
 import numpy as np
+import sys
 
 basedir = "C:/Documents and Settings/sesaadmin/My Documents/Neutron Data/"
 
@@ -30,7 +31,7 @@ def export(runs,sortby,flipper,minmon=16):
                       minmon,
                       ups,
                       data)
-        Combiner.save(base+value+"down_temp.pel",
+        Combiner.save(base+value+"down.pel",
                       minmon,
                       downs,
                       data)
@@ -59,11 +60,11 @@ def echoplot(run,names,mins=(148,223),maxs=(240,302),outfile=None):
 def echodiff(run,names,split,outfile=None):
     mins=(148,223)
     maxs=(240,302)
-    data = np.vstack(tuple([np.abs(np.arccos(spectrum(run,name,mins,(split,302))) - 
-                            np.arccos(spectrum(run,name,(split,223),maxs))) for name in names]))
+    data = np.vstack(tuple([np.arccos(spectrum(run,name,mins,(split,302))) - 
+                            np.arccos(spectrum(run,name,(split,223),maxs)) for name in names]))
     xs = np.arange(200)
     ys = np.array([float(x) for x in names])
-    plt.pcolor(xs,ys,data,vmin=0,vmax=1)
+    plt.pcolor(xs,ys,data,vmin=-1,vmax=1)
     if outfile is None:
         plt.show()
     else:
@@ -72,14 +73,14 @@ def echodiff(run,names,split,outfile=None):
         plt.clf()
 
 if __name__=='__main__':
-#    export([2496],4,3,0.5)
-    start = 4.75
-    stop = 5.251
-    step = 0.025
+    runs = [int(x) for x in sys.argv[1:]]
+
+#    export(runs,4,3,0.5)
+    start = 4.5
+    stop = 5.51
+    step = 0.05
     names = [str(x) for x in list(np.arange(start,stop,step))]
     #
-#    echoplot(2500,names,mins=(187,223),outfile='top.png')
-#    echoplot(2500,names,maxs=(187,302),outfile='bottom.png')
-#    echoplot(2496,names,mins=(187,223),outfile='top2496.png')
-#    echoplot(2496,names,maxs=(187,302),outfile='bot2496.png')
-    echodiff(2496,names,187)
+#    echoplot(runs[-1],names)
+    echodiff(runs[-1],names,187)
+
