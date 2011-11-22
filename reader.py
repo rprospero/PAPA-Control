@@ -224,6 +224,43 @@ class PelFile:
                 print((stop-start))                        
                 return cube
 
+
+	def make1d(self,mins,maxs):
+                """Make a 1D histogram from the spectrum data."""
+
+		xmin,ymin = mins
+		xmax,ymax = maxs
+
+                l = len(self.data)
+                sd =self.data
+                i=0;
+
+                data = np.zeros(200,dtype=np.float32)
+
+                #If there's no data, return an empty array
+                if l==0:
+                        return data
+                xarr = np.asarray((self.data & 0x7FF),np.uint16)#x
+                yarr = np.asarray((self.data & 0x3FF800)>>11,np.uint16)#y
+                
+                yarr = 512-yarr #correct for vertical flip
+                timearr = self.convertTime((self.data >> 32) & 0x7FFFFFFF)#time
+                timearr = np.asarray(np.floor(timearr),np.uint16)
+                
+                #Loop over 20 angstroms in steps of 0.1 angstroms
+                np.seterr(over='raise')
+                xarr %= 512
+                yarr %= 512
+                count = len(xarr)
+		for i in timearr[np.where((xarr >= xmin) & (xarr < xmax) &
+					  (yarr >= ymin) & (yarr < ymax) &
+					  (0 <= timearr) & (timearr < 200))]:
+			data[i] += 1
+                del xarr
+                del yarr
+                del timearr
+
+                return data
         
         def spectrum(self,output):
                 """Save the neutron spectrum to a text file"""
