@@ -49,7 +49,9 @@ def spectrum(run,name,mins=(183,227),maxs=(234,302)):
 
 def echoplot(run,names,mins=(148,223),maxs=(240,302),outfile=None):
     data = np.vstack(tuple([spectrum(run,name,mins,maxs) for name in names]))
-    xs = np.arange(200)
+    data[np.isnan(data)]=0
+    data = data[:,0:100]
+    xs = np.arange(100)*0.1
     ys = np.array([float(x) for x in names])
     plt.pcolor(xs,ys,data,vmin=-1,vmax=1)
     if outfile is None:
@@ -64,7 +66,11 @@ def echodiff(run,names,split,outfile=None):
     maxs=(240,302)
     data = np.vstack(tuple([np.arccos(spectrum(run,name,mins,(split,302))) - 
                             np.arccos(spectrum(run,name,(split,223),maxs)) for name in names]))
-    xs = np.arange(200)
+
+    data[np.isnan(data)]=0
+    data = data[:,0:100]
+
+    xs = np.arange(100)*0.1
     ys = np.array([float(x) for x in names])
     plt.pcolor(xs,ys,data,vmin=-1,vmax=1)
     if outfile is None:
