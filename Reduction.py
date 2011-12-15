@@ -47,6 +47,16 @@ def spectrum(run,name,mins=(183,227),maxs=(234,302)):
 
     return (up-down)/(up+down)
 
+def fr(run,name,mins=(183,227),maxs=(234,302)):
+    p = PelFile(basedir+"%04i/" % run + name+"up.pel")
+    mon = MonFile(basedir+"%04i/" % run + name+"up.pel.txt",False)
+    up = p.make1d(mins,maxs)/np.sum(mon.spec)
+    p = PelFile(basedir+"%04i/" % run + name+"down.pel")
+    mon = MonFile(basedir+"%04i/" % run + name+"down.pel.txt",False)
+    down = p.make1d(mins,maxs)/np.sum(mon.spec)
+
+    return np.sum(up[50:100])/np.sum(down[50:100])
+
 def echoplot(run,names,mins=(148,223),maxs=(240,302),outfile=None):
     data = np.vstack(tuple([spectrum(run,name,mins,maxs) for name in names]))
     data[np.isnan(data)]=0
@@ -61,6 +71,17 @@ def echoplot(run,names,mins=(148,223),maxs=(240,302),outfile=None):
         plt.savefig(outfile)
         plt.clf()
 
+def echofr(run,names,mins=(148,223),maxs=(240,302),outfile=None):
+    data = np.array([fr(run,name,mins,maxs) for name in names])
+    data[np.isnan(data)]=0
+    xs = np.array([float(x) for x in names])
+    plt.plot(xs,data)
+    if outfile is None:
+        plt.show()
+    else:
+        plt.savefig(outfile)
+        plt.clf()
+
 def echodiff(run,names,split,outfile=None):
     mins=(148,223)
     maxs=(240,302)
@@ -72,7 +93,7 @@ def echodiff(run,names,split,outfile=None):
 
     xs = np.arange(100)*0.1
     ys = np.array([float(x) for x in names])
-    plt.pcolor(xs,ys,data,vmin=-1,vmax=1)
+    plt.pcolor(xs,ys,data,vmin=-np.pi,vmax=np.pi)
     if outfile is None:
         plt.show()
     else:
@@ -99,7 +120,7 @@ if __name__=='__main__':
 
     parser.add_option("--plot",action="store",type="choice",
                       help="Where to make a simple plot or perform a height diff",
-                      choices=["plot","diff"],default="plot")
+                      choices=["plot","diff","fr"])
 
     (options,runs) = parser.parse_args()
 
@@ -110,10 +131,14 @@ if __name__=='__main__':
     if options.export:
         export(runs,choices[options.sortby],choices[options.flip],options.mon)
 
-    names = [str(x) for x in list(np.arange(options.start,options.stop,options.step))]
-
-    if options.plot=="plot":
-        echoplot(runs[-1],names)
-    elif options.plot=="diff":
-        echodiff(runs[-1],names,187)
+    if options.plot is None:
+        pass
+    else:
+        names = [str(x) for x in list(np.arange(options.start,options.stop,options.step))]
+        if options.plot=="plot":
+            echoplot(runs[-1],names)
+        elif options.plot=="fr":
+            echofr(runs[-1],names)
+        elif options.plot=="diff":
+            echodiff(runs[-1],names,187)
 
