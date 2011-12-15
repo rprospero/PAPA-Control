@@ -252,15 +252,17 @@ class PelFile:
                 xarr %= 512
                 yarr %= 512
                 count = len(xarr)
-		for i in timearr[np.where((xarr >= xmin) & (xarr < xmax) &
-					  (yarr >= ymin) & (yarr < ymax) &
-					  (0 <= timearr) & (timearr < 200))]:
-			data[i] += 1
+		data,_ = np.histogram(timearr[
+				np.where((xarr >= xmin) & (xarr < xmax) &
+					 (yarr >= ymin) & (yarr < ymax) &
+					 (0 <= timearr) & (timearr < 200))],
+				    bins=np.arange(0,201))
+				    
                 del xarr
                 del yarr
                 del timearr
-
-                return data
+		
+                return np.asarray(data,dtype=np.float64)
         
         def spectrum(self,output):
                 """Save the neutron spectrum to a text file"""
