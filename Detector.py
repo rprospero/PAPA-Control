@@ -10,6 +10,7 @@ import datetime
 from time import clock,sleep
 from math import sqrt
 nidaq = ctypes.windll.nicaiu #Link to nicaiu.dll
+import logging
 
 #typedefs
 int32 = ctypes.c_long
