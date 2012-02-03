@@ -263,6 +263,25 @@ class PelFile:
                 del timearr
 		
                 return np.asarray(data,dtype=np.float64)
+
+	def raw1d(self,mins,maxs):
+		xmin,ymin = mins
+		xmax,ymax = maxs
+
+                xarr = np.asarray((self.data & 0x7FF),np.uint16)#x
+		yarr = np.asarray((self.data & 0x3FF800)>>11,np.uint16)#y
+                
+                yarr = 512-yarr #correct for vertical flip
+                timearr = np.asarray((self.data >> 32) & 0x7FFFFFFF)#raw time
+		print np.max(timearr)
+		np.seterr(over='raise')
+                xarr %= 512
+                yarr %= 512
+                count = len(xarr)
+		return np.histogram(timearr[
+				np.where((xarr >= xmin) & (xarr < xmax) &
+					 (yarr >= ymin) & (yarr < ymax))]
+				    ,bins=np.arange(37500)*100)#3750052
         
         def spectrum(self,output):
                 """Save the neutron spectrum to a text file"""
