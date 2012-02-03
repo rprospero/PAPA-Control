@@ -18,6 +18,7 @@ class Instrument:
     def __init__(self):
         """Create the instrument object"""
         self.mon = Monitor()
+        self.mon.login(b"Sesame")
         self.det = DetectorProcess()
         self.running = False#is the detector running?
         self.starttime = clock()#When the most recent run started
@@ -32,6 +33,8 @@ class Instrument:
         """Update to the next data run"""
         self.subrun=0
         runnumber = self.config.nextRun()
+        self.mon.logout()
+        self.mon.login(bytes(str(runnumber)))
 
     def start(self):
         """Begin neutron collection"""

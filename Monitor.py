@@ -28,7 +28,7 @@ class Monitor:
 
     MONTOF = b'diiiii?i'
 
-    def __init__(self):
+    def __init__(self,user="Sesame"):
         """Create a connection to the monitor computer"""
         #create the sending socket
         self.s = socket.socket(socket.AF_INET,socket.SOCK_DGRAM,socket.IPPROTO_UDP)
@@ -45,7 +45,6 @@ class Monitor:
         self.running = True
         self.receiveID = 100
         self.loggedIn=False
-        self.login()
 
     def __del__(self):
         """Destructor that kills any active connection"""
@@ -65,7 +64,7 @@ class Monitor:
         """Create a packet header with three arbitrary parameters"""
         totalBytes = 4*6+len(data) #Assuming that there is no actual data
         self.receiveID += 1
-        return struct.pack('iiiiii',self.receiveID,commandID,totalBytes,a,b,c)
+        return struct.pack('iiiiii',self.receiveID,commandID,totalBytes,a,b,c)+data
 
     def getResp(self,count=1024):
         """Unpack a response from the server"""
@@ -73,23 +72,33 @@ class Monitor:
         receiveID,_,bcount,a,b,c=struct.unpack('iiiiii',response[:24])
         return (a,b,c,response[24:])
 
-    def login(self):
+    def login(self,user):
         """Sign in to the server"""
-        print("Logging In")
-        self.s.send(self.packetHeader(self.LOGIN,b'\0python\0'))
+        logging.debug("Logging In")
+#        self.s.send(self.packetHeader(self.LOGIN,b'\0python\0'))
+        data = b'<?xml version="1.0"?>\n'
+        data += b'<BeamtimeInfo>\n'
+        data += b'<Users>\n'
+        data += b'<Current>\n'
+        data += user
+        data += b'</Current>\n'
+        data += b'</Users>\n'
+        data += b'</BeamtimeInfo>\n'
+        logging.debug("Sending Data")
+        self.s.send(self.packetHeader(self.LOGIN,data))
         self.loggedIn = True
 #        return self.getResp()
 
     def logout(self):
         """Sign out from the server"""
-        print("Logging Out")        
+        logging.debug("Logging Out")        
         self.s.send(self.packetHeader(self.LOGOUT,b''))
         self.loggedIn = False
         return self.getResp()
 
     def startrun(self,runnumber):
         """Start collecting monitor data"""
-        print("Starting Run")
+        logging.info("Starting Run")
         self.runnumber = runnumber
         self.s.send(self.packetHeader(self.STARTALL,b'',runnumber))
         self.running = True
@@ -97,14 +106,14 @@ class Monitor:
 
     def stoprun(self):
         """Stop collecting monitor data"""
-        print("Stopping Run")
+        logging.info("Stopping Run")
         self.s.send(self.packetHeader(self.STOPALL,b''))
         self.running = False
         #return self.getResp()
 
     def save(self):
         """Save the data at the server."""
-        print("Saving Data")
+        logging.info("Saving Data")
         self.s.send(self.packetHeader(self.SAVEDATA,b''))
         #return self.getResp()
 
@@ -129,6 +138,7 @@ class Monitor:
     def localSave(self,stream,time=0):
         """Creates a TOF histogram data file in the file stream"""
         hist = self.getHistoData()
+        self.save()
         stream.write("File Saved for Run Number %d.\n" % self.runnumber)
         stream.write("This run had %d counts " % np.sum(hist[1:]))
         stream.write("and lasted %d milliseconds\n" % time)
