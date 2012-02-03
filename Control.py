@@ -24,11 +24,24 @@ QUERY=210
 SET_COMMAND=300
 SET_ONES=310
 
+import logging
+logging.basicConfig(level=logging.DEBUG,
+                    format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+                    datefmt="%m-%d %H:%M",
+                    filename="C:/Documents and Settings/sesaadmin/My Documents/Neutron Data/controllog.txt",
+                    filemode="w")
+console = logging.StreamHandler()#for writing to console
+console.setLevel(logging.INFO)
+formatter = logging.Formatter("%(message)s")#The console just needs the message
+console.setFormatter(formatter)
+logging.getLogger("").addHandler(console)
+
 def mailmessage(subject,message,password):
     fromaddress="Sesame.Beamline@gmail.com"
     toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu",
                  "pstonaha@indiana.edu","gtwarren@indiana.edu"]#,"helkaise@indiana.edu",
 #                 "8123205472@vtext.com"]
+    logging.info("Sending e-mail: %s",message)
     try:
         server = smtplib.SMTP_SSL("smtp.gmail.com",465)
         server.login(fromaddress,password)
@@ -39,7 +52,7 @@ def mailmessage(subject,message,password):
                         +"SUBJECT:"+subject+"\n\n"+message)
         server.quit()
     except smtplib.SMTPException:
-        print "Failed to connect to mail server"
+        logging.error("Failed to connect to mail server",exc_info=true)
 
 def ones(i,coils,ratio):
     while True: yield 1
@@ -105,37 +118,37 @@ def gainscan(i,coils,ratio):
     ygains = [550,377,415,345,365,490,407,352,430,505]
     while True:
         for (n,x,y) in zip(range(10),xgains,ygains):
-            print('Setting X%d and Y%d to ten'%(n,n))
+            logging.info('Setting X%d and Y%d to ten',n,n)
             i.setParam('gain for X',(n,10))
             i.setParam('gain for Y',(n,10))
-            print("Yielded")
+            logging.debug("Yielded")
             yield 30
-            print('Restoring X%d and Y%d from ten'%(n,n))
+            logging.info('Restoring X%d and Y%d from ten',n,n)
             i.setParam('gain for X',(n,x))
             i.setParam('gain for Y',(n,y))
 
 
 
 def thresholdscan(i,coils,ratio):
-    print("Starting scan")
+    logging.debug("Starting scan")
     t = 10
     while True:
-        print("Thresold: %i" % t)
+        logging.info("Thresold: %i",t)
         i.setParam('trigger thresholds for papa strobe',(t,1023))
         for gain in range(20):
-            print("Gain: %i" % (gain*20+455))
+            logging.info("Gain: %i", (gain*20+455))
             i.setParam('gain for strobe pmt',gain*20+455)
             yield 3
         t += 10
 
 def findMin(x,ylow,ycen,yhigh,h):
-    print "findMin"
+    logging.debug( "findMin")
     return (4*x*ycen-(h+2*x)*ylow+(h-2*x)*yhigh)/(4*ycen-2*(ylow+yhigh))
 
 def readLatest(i):
-    print "Read Latest"
+    logging.debug( "Read Latest")
     path = i.getPath()+("%04d"%i.subrun)+".pel"
-    print path
+    logging.debug( path)
     p = reader.PelFile(path)
     data = np.sum(p.make3d(),axis=2) #make 2D map
     return np.std(data)
@@ -150,8 +163,8 @@ def base(i,coils,ratio):
         for gain in gains:
             init = dict[gain]
             for x in range(init-200,init+201,100):
-                print gain
-                print x
+                logging.info( gain)
+                logging.info( x)
                 i.setParam(gain[:-1],(int(gain[-1]),x))
                 yield 7
                 i.setParam(gain[:-1],(int(gain[-1]),init))
@@ -169,14 +182,14 @@ def dumper(i,coils,ratio):
         ins.setParam('mode',am)
         base = [None,None,None]
         #record intial values
-        print("Record initial values")
+        logging.info("Record initial values")
         for i in range(3):
             if adcs[am][i] is not None:
-                print adcs[am][i]
-                print adcs[am][i][0]+str(adcs[am][i][1])
+                logging.debug( adcs[am][i])
+                logging.debug( adcs[am][i][0]+str(adcs[am][i][1]))
                 base[i] = ins.query(adcs[am][i][0]+str(adcs[am][i][1]))
         #scan the gain
-        print("Scan the gain")
+        logging.info("Scan the gain")
         for gain in range(100,800,100):
             for adc in adcs[am]:
                 if adc is not None:
@@ -200,24 +213,24 @@ def tune(i,coils,ratio):
     while True:
         for gain in gains:
             base = i.query(gain)
-            print "Testing " + gain + " at " + str(base)
+            logging.info( "Testing " + gain + " at " + str(base))
             yield 2
             ycen = readLatest(i)
-            print "Std:\t%f"%ycen
-            print "Testing " + gain + " at " + str(base-h)
+            logging.info( "Std:\t%f"%ycen)
+            logging.info( "Testing " + gain + " at " + str(base-h))
             i.setParam(gain[:-1],(int(gain[-1]),base-h))
             yield 2
             ylow = readLatest(i)
-            print "Std:\t%f"%ylow
-            print "Testing " + gain + " at " + str(base+h)
+            logging.info( "Std:\t%f"%ylow)
+            logging.info( "Testing " + gain + " at " + str(base+h))
             i.setParam(gain[:-1],(int(gain[-1]),base+h))
             yield 2
             yhigh = readLatest(i)
-            print "Std:\t%f"%yhigh
-            print "Set Complete"
+            logging.info( "Std:\t%f"%yhigh)
+            logging.info( "Set Complete")
             newbase = int(findMin(base,ylow,ycen,yhigh,h))
             newbase = min(900,max(100,newbase))
-            print "The new " + gain + " is " + str(newbase)
+            logging.info( "The new " + gain + " is " + str(newbase))
             i.setParam(gain[:-1],(int(gain[-1]),newbase))
         if h > 25:
             h = h/2
@@ -236,7 +249,7 @@ def controlThunk(conn,steptime=120):
     command = ones
     generator = command(i,coils,(1,1))
     n = generator.next()
-    print("Starting Main Loop")
+    logging.debug("Starting Main Loop")
     while True:
         if (not running) and (not conn.poll()):
             sleep(0.01)
@@ -281,7 +294,7 @@ def controlThunk(conn,steptime=120):
             if cmd==TRIANGLE: coils.triangle(args[0],args[1])
             if cmd==SET_PARAM:
                 if running:
-                    print("Cannot adjust detector paramters while the instrument is running")
+                    logging.warning("Cannot adjust detector paramters while the instrument is running")
                 else:
                     i.setParam(args[0],args[1])
             if cmd==QUERY:
@@ -291,7 +304,7 @@ def controlThunk(conn,steptime=120):
         if running:
             #if we've run long enough, start a new sub-run
             if clock()-starttime > steptime*n:
-                print("DEBUG: Stopping Instrument")
+                logging.debug("Stopping Instrument")
                 (time,monitor_count,detector_count) = i.stop()
                 mp = {"subrun":i.subrun} #Manifest Parameters
                 mp["time"]=time
@@ -304,7 +317,7 @@ def controlThunk(conn,steptime=120):
                 mp["phase current"]=coils.getPhase()
                 mp["guide current"]=coils.getGuides()
                 mp["sample current"]=coils.getSample()
-                print("DEBUG: E-mail time")
+                logging.debug("E-mail time")
                 if beamon and monitor_count/time < 2.0:
                     mailmessage("LENS is down","I am not recieving many neutrons.  Is the beam off?",password)
                     beamon=False
@@ -313,12 +326,12 @@ def controlThunk(conn,steptime=120):
                     beamon=True    
                 for tri in range(1,9):
                     mp["triangle %d"%tri]=coils.getTriangle(tri)
-                print("Debug: Update Manifest")
+                logging.debug("Update Manifest")
                 manifest.addRun(mp)
                 ltime = asctime(localtime())
                 starttime = clock()
                 n=generator.next()
-                print ("DEBUG: Starting Instrument")
+                logging.debug("Starting Instrument")
                 i.start()
     del i
 

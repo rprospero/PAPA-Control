@@ -6,6 +6,7 @@ from Monitor import Monitor
 from XMLConfig import XMLConfig
 
 from time import clock,sleep
+import logging
 
 class Instrument:
     """This class handles the collection of normalized neutron data
@@ -35,7 +36,7 @@ class Instrument:
     def start(self):
         """Begin neutron collection"""
         self.subrun += 1
-        print("Starting run %d.%04d" % (self.config.getRunnumber(),self.subrun))
+        logging.info("Starting run %d.%04d" % (self.config.getRunnumber(),self.subrun))
         self.det.runnumber(self.subrun)        
         self.det.directory(self.config.getDir())
         self.starttime = clock()        
@@ -67,10 +68,10 @@ class Instrument:
         stop = clock()
         detector_count = self.det.count()
         monitor_count = self.mon.getCount()
-        print("Run %d.%04d ended" % (self.config.getRunnumber(),self.subrun))
-        print("Time:\t\t%f seconds"%(stop-self.starttime))
-        print("Detector:\t%d counts"%detector_count)
-        print("Monitor:\t%d counts"%monitor_count)
+        logging.info("Run %d.%04d ended" % (self.config.getRunnumber(),self.subrun))
+        logging.info("Time:\t\t%f seconds"%(stop-self.starttime))
+        logging.info("Detector:\t%d counts"%detector_count)
+        logging.info("Monitor:\t%d counts"%monitor_count)
         with open(self.getMonitorFile(),"w") as stream:
                 self.mon.localSave(stream,(clock()-self.starttime)*1000)
         return (stop-self.starttime,monitor_count,detector_count)

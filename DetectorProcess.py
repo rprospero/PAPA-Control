@@ -10,6 +10,7 @@ as opposed to a mere child process, but that will have to wait for ver. 2.0
 import multiprocessing
 from Detector import Detector
 from time import sleep
+import logging
 
 #Signals for the Detector Thunk
 QUIT = 0
@@ -54,7 +55,7 @@ def DetectorThunk(conn,dir='C:/PAPA Control/',datacount=1000):
                 break
             elif cmd==START:
                 if runnumber<=0:
-                    print("Error: Invalid Run #")
+                    logging.error("Error: Invalid Run #")
                     continue
                 if not running:
                     stream = open(dir+("%04d"%runnumber)+'.pel','wb')
@@ -71,17 +72,17 @@ def DetectorThunk(conn,dir='C:/PAPA Control/',datacount=1000):
                     stream=None
                     continue
             elif cmd==PAUSE:
-                print("Pausing Detector")
+                logging.info("Pausing Detector")
                 det.stop()#Do NOT clear
                 running = False
                 paused = True
             elif cmd==RESUME:
                 if paused:
-                    print("Resuming")
+                    logging.info("Resuming")
                     det.start()
                     running = True
                 else:
-                    print("Cannot resume: detector not paused")
+                    logging.warning("Cannot resume: detector not paused")
             elif cmd==RUNNUMBER:
                 runnumber = args[0]
                 conn.send("Run # set to %d"%runnumber)
@@ -97,7 +98,7 @@ def DetectorThunk(conn,dir='C:/PAPA Control/',datacount=1000):
                 #print det.status[args[0]]
 
             else:
-                print("Did not recognize command %d"%cmd)
+                logging.warning("Did not recognize command %d"%cmd)
         if running:
             if stream is None: continue
             try:
@@ -109,7 +110,7 @@ def DetectorThunk(conn,dir='C:/PAPA Control/',datacount=1000):
                 #64 bit mode
                 (num,data)=det.read(datacount)
             except RuntimeError,(err):
-                print(err)
+                logging.error(err)
                 break
             count += num
             #Pull only the actual data from the buffer
@@ -120,7 +121,7 @@ def DetectorThunk(conn,dir='C:/PAPA Control/',datacount=1000):
                 stream.flush()
                 sleep(0.01)
     del det
-    print("Detector Process Halted!")
+    logging.info("Detector Process Halted!")
     return
     
 

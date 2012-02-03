@@ -227,7 +227,7 @@ class Detector:
         sleep(0.1)
         response = self.ser.read(80)
         if response != 'AS1\rOK\r':
-            print response
+            logging.error( response)
             raise RuntimeError('Could not start data acquisition')
         self.running=True
 
@@ -363,7 +363,7 @@ class Detector:
 
     def __del__(self):
         """Destructor for the detector object"""
-        print("Task Stopped")
+        logging.info("Task Stopped")
         self.powerOff()
         self.ser.close()        
         if self.taskHandle.value != 0:
@@ -410,22 +410,22 @@ class Detector:
         sleep(0.1)
         t = self.ser.read(80)
         if t!=command+b'OK\r':
-            print(t)
+            logging.error(t)
             raise RuntimeError('Failed to set %s' % param)
-        print command
-        print t
+        logging.debug( command)
+        logging.debug( t)
         if(param[:10] == "gain for X" or param[:10] == "gain for Y"):
             param += str(val[0])
             val = val[1]
-            print param
-            print val
+            logging.debug( param)
+            logging.debug( val)
         self.status[param]=val
         return
 
     def printStatus(self):
         """Display's the detector's current parameters"""
         for k in self.status.keys():
-            print("%s:\t%s"%(k,str(self.status[k])))
+            logging.info("%s:\t%s"%(k,str(self.status[k])))
 
     def collect(self,runNumber,time):
         """Saves data to a file.  <em>This command is deprecated</em>"""
@@ -434,7 +434,7 @@ class Detector:
         f += str(runNumber)
         f += " - " + "%02d%02d%4d.pel"%(now.month,now.day,now.year)
         x.printStatus()
-        print("Collecting data...")
+        logging.info("Collecting data...")
         with open(f,"wb") as stream:
             stream.write(self.makeHeader())
             start = clock()
@@ -446,8 +446,8 @@ class Detector:
                 try:
                     (num,data)=self.read(reads)
                 except RuntimeError, (err):
-                    print("Count:%d\tTime:%f"%(count,clock()-start))
-                    print(err)
+                    logging.error("Count:%d\tTime:%f"%(count,clock()-start))
+                    logging.error(err)
                     break
                 count += num
                 if num < reads:
@@ -460,8 +460,8 @@ class Detector:
             t = clock()-start
             self.stop()
         count //= 2
-        print("Collected %d neutrons in %d seconds" % (count,t))
-        print("Count rate is %f +/- %f" % (count/float(t),sqrt(count)/float(t)))
+        logging.info("Collected %d neutrons in %d seconds" % (count,t))
+        logging.info("Count rate is %f +/- %f" % (count/float(t),sqrt(count)/float(t)))
 
             
                 
