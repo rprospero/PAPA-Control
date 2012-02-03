@@ -36,16 +36,19 @@ def mailmessage(subject,message,password):
     toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu"]#,
 #                 "pstonaha@indiana.edu","helkaise@indiana.edu",
 #                 "8123205472@vtext.com"]
-    server = smtplib.SMTP_SSL("smtp.gmail.com",465)
-    server.login(fromaddress,password)
-    server.sendmail(fromaddress,
-                    toaddresses,
-                    "FROM:\"SESAME Beamline\" <"+fromaddress+">\n"
-                    +"TO: "+",".join(toaddresses)+"\n"
-                    +"SUBJECT:"+subject+"\n\n"+message)
-    server.quit()
+    try:
+        server = smtplib.SMTP_SSL("smtp.gmail.com",465)
+        server.login(fromaddress,password)
+        server.sendmail(fromaddress,
+                        toaddresses,
+                        "FROM:\"SESAME Beamline\" <"+fromaddress+">\n"
+                        +"TO: "+",".join(toaddresses)+"\n"
+                        +"SUBJECT:"+subject+"\n\n"+message)
+        server.quit()
+    except smtplib.SMTPException:
+        print "Failed to connect to mail server"
 
-def ones(a=0,b=0):
+def ones(i,coils,ratio):
     while True: yield 1
 
 ##def flip(ratio,coils):
