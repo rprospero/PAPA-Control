@@ -23,18 +23,11 @@ SET_PARAM=200
 QUERY=210
 SET_COMMAND=300
 SET_ONES=310
-SET_FLIPPING=320
-SET_TRIPLE=330
-SET_FLIPPER_EFFICIENCY=340
-SET_CUR_SCAN=350
-SET_THRESH_SCAN=360
-SET_GAIN_SCAN=370
-SET_TUNE=380
 
 def mailmessage(subject,message,password):
     fromaddress="Sesame.Beamline@gmail.com"
-    toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu"]#,
-#                 "pstonaha@indiana.edu","helkaise@indiana.edu",
+    toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu",
+                 "pstonaha@indiana.edu","gtwarren@indiana.edu"]#,"helkaise@indiana.edu",
 #                 "8123205472@vtext.com"]
     try:
         server = smtplib.SMTP_SSL("smtp.gmail.com",465)
@@ -51,26 +44,14 @@ def mailmessage(subject,message,password):
 def ones(i,coils,ratio):
     while True: yield 1
 
-##def flip(ratio,coils):
-##    coils.flipper(-1*abs(coils.getFlipper()))
-##    coils.phase(-7)
-##    (n,d)=ratio
-##    while True:
-##        coils.flip()
-##        yield n
-##        (n,d)=(d,n)
-
-def flip(ratio,coils):
+def flip(i,coils,ratio):
     (n,d)=ratio
     while True:
-        #coils.flip()
         yield n
-        coils.flipper(-1*coils.getFlipper())        
-#        coils.flipper(-1*coils.getFlipper())
+        coils.guides(-1*coils.getGuides())        
         (n,d)=(d,n)
-        yield n #change added for Haiyang's desired flipping patter of +--+
 
-def triple(ratio, coils):
+def triple(i,coils,ratio):
     (bsfa,bfsfa,bsa)=ratio
     coils.flipper(7)
     while True:
@@ -84,7 +65,7 @@ def triple(ratio, coils):
             coils.phase(7)
             yield bsa
 
-def flipperefficiency(ratio,coils):
+def flipperefficiency(i,coils,ratio):
     #5/5/2010 the following supplies control the following flippers
     #Guides Negative -> Flipper 1 Rear Field Up
     #Flippers Negative -> Flipper 2 Front Field Down
@@ -105,11 +86,13 @@ def flipperefficiency(ratio,coils):
         coils.guides(-7)
         yield dd
 
-def currentscan(ratio,coils):
+def currentscan(i,coils,ratio):
     (n,d)=ratio
     while True:
-        for cur in [4 + x/10.0 for x in range(21)]:
-            coils.triangle(7,cur)
+        for cur in [2.0 + x/20.0 for x in range(61)]:
+#            for i in range(1,5):
+#            coils.triangle(8,cur)
+            coils.phase(cur)
             yield n
 #            coils.flipper(-1*coils.getFlipper())
             coils.sample(-1*coils.getSample())
@@ -117,38 +100,33 @@ def currentscan(ratio,coils):
 #            coils.flipper(-1*coils.getFlipper())
             coils.sample(-1*coils.getSample())
 
-def makeGainScan(i):
+def gainscan(i,coils,ratio):
     xgains = [320,415,357,375,568,412,447,530,650,0]
     ygains = [550,377,415,345,365,490,407,352,430,505]
-    print "Making Gain Scan"
-    def gainscan(ratio,coils):
-        print("Starting Gain Scan")
-        while True:
-            for (n,x,y) in zip(range(10),xgains,ygains):
-                print('Setting X%d and Y%d to ten'%(n,n))
-                i.setParam('gain for X',(n,10))
-                i.setParam('gain for Y',(n,10))
-                print("Yielded")
-                yield 30
-                print('Restoring X%d and Y%d from ten'%(n,n))
-                i.setParam('gain for X',(n,x))
-                i.setParam('gain for Y',(n,y))
-    return gainscan
+    while True:
+        for (n,x,y) in zip(range(10),xgains,ygains):
+            print('Setting X%d and Y%d to ten'%(n,n))
+            i.setParam('gain for X',(n,10))
+            i.setParam('gain for Y',(n,10))
+            print("Yielded")
+            yield 30
+            print('Restoring X%d and Y%d from ten'%(n,n))
+            i.setParam('gain for X',(n,x))
+            i.setParam('gain for Y',(n,y))
 
 
-def makeThresholdScan(i):
-    def thresholdscan(ratio,coils):
-        print("Starting scan")
-        t = 10
-        while True:
-            print("Thresold: %i" % t)
-            i.setParam('trigger thresholds for papa strobe',(t,1023))
-            for gain in range(20):
-                print("Gain: %i" % (gain*20+455))
-                i.setParam('gain for strobe pmt',gain*20+455)
-                yield 3
-            t += 10
-    return thresholdscan
+
+def thresholdscan(i,coils,ratio):
+    print("Starting scan")
+    t = 10
+    while True:
+        print("Thresold: %i" % t)
+        i.setParam('trigger thresholds for papa strobe',(t,1023))
+        for gain in range(20):
+            print("Gain: %i" % (gain*20+455))
+            i.setParam('gain for strobe pmt',gain*20+455)
+            yield 3
+        t += 10
 
 def findMin(x,ylow,ycen,yhigh,h):
     print "findMin"
@@ -162,92 +140,87 @@ def readLatest(i):
     data = np.sum(p.make3d(),axis=2) #make 2D map
     return np.std(data)
 
-def makeBaser(i):    
+def base(i,coils,ratio):
     gains = ["gain for X"+str(x) for x in range(9)]
     gains.extend(["gain for Y"+str(x) for x in range(9)])
     dict = {}
     for gain in gains:
         dict[gain] = i.query(gain)
-    def base(ratio,coils):
-        while True:
-            for gain in gains:
-                init = dict[gain]
-                for x in range(init-200,init+201,100):
-                    print gain
-                    print x
-                    i.setParam(gain[:-1],(int(gain[-1]),x))
-                    yield 7
+    while True:
+        for gain in gains:
+            init = dict[gain]
+            for x in range(init-200,init+201,100):
+                print gain
+                print x
+                i.setParam(gain[:-1],(int(gain[-1]),x))
+                yield 7
                 i.setParam(gain[:-1],(int(gain[-1]),init))
-    return base
 
-def makeDumper(ins):
+
+def dumper(i,coils,ratio):
     adcs = [[None,('gain for X',9),('gain for Y',9)],
-             [('gain for X',8),('gain for X',7),('gain for Y',7)],
-             [('gain for Y',8),('gain for X',6),('gain for Y',6)],
-             [('gain for X',5),('gain for X',4),('gain for Y',4)],
-             [('gain for Y',5),('gain for X',3),('gain for Y',3)],
-             [('gain for X',2),('gain for X',1),('gain for Y',1)],
-             [('gain for X',2),('gain for X',0),('gain for Y',0)]]
-    def dumper(ratio,coils):
-        for am in range(7):
-            ins.setParam('mode',am)
-            base = [None,None,None]
-            #record intial values
-            print("Record initial values")
-            for i in range(3):
-                if adcs[am][i] is not None:
-                    print adcs[am][i]
-                    print adcs[am][i][0]+str(adcs[am][i][1])
-                    base[i] = ins.query(adcs[am][i][0]+str(adcs[am][i][1]))
-            #scan the gain
-            print("Scan the gain")
-            for gain in range(100,800,100):
-                for adc in adcs[am]:
-                    if adc is not None:
-                        ins.setParam(adc[0],(adc[1],gain))
-                yield 6.0/120.0
-                sleep(5)
-            #return to initial value
-            for i in range(3):
+         [('gain for X',8),('gain for X',7),('gain for Y',7)],
+         [('gain for Y',8),('gain for X',6),('gain for Y',6)],
+         [('gain for X',5),('gain for X',4),('gain for Y',4)],
+         [('gain for Y',5),('gain for X',3),('gain for Y',3)],
+         [('gain for X',2),('gain for X',1),('gain for Y',1)],
+         [('gain for X',2),('gain for X',0),('gain for Y',0)]]
+    for am in range(7):
+        ins.setParam('mode',am)
+        base = [None,None,None]
+        #record intial values
+        print("Record initial values")
+        for i in range(3):
+            if adcs[am][i] is not None:
+                print adcs[am][i]
+                print adcs[am][i][0]+str(adcs[am][i][1])
+                base[i] = ins.query(adcs[am][i][0]+str(adcs[am][i][1]))
+        #scan the gain
+        print("Scan the gain")
+        for gain in range(100,800,100):
+            for adc in adcs[am]:
                 if adc is not None:
                     ins.setParam(adc[0],(adc[1],gain))
-        #We're finished, so just take a two year measurement
-        ins.setParam('mode',14)
-        yield 525600
-                
-    return dumper
+            yield 6.0/120.0
+            sleep(5)
+        #return to initial value
+        for i in range(3):
+            if adc is not None:
+                ins.setParam(adc[0],(adc[1],gain))
+    #We're finished, so just take a two year measurement
+    ins.setParam('mode',14)
+    yield 525600
 
-def makeTuner(i):
+def tune(i,coils,ratio):
     gains = ["gain for X"+str(x) for x in range(9)]
     gains.extend(["gain for Y"+str(x) for x in range(9)])
     dict = {}
-    def tune(ratio,coils):
-        h=100
-        while True:
-            for gain in gains:
-                base = i.query(gain)
-                print "Testing " + gain + " at " + str(base)
-                yield 2
-                ycen = readLatest(i)
-                print "Std:\t%f"%ycen
-                print "Testing " + gain + " at " + str(base-h)
-                i.setParam(gain[:-1],(int(gain[-1]),base-h))
-                yield 2
-                ylow = readLatest(i)
-                print "Std:\t%f"%ylow
-                print "Testing " + gain + " at " + str(base+h)
-                i.setParam(gain[:-1],(int(gain[-1]),base+h))
-                yield 2
-                yhigh = readLatest(i)
-                print "Std:\t%f"%yhigh
-                print "Set Complete"
-                newbase = int(findMin(base,ylow,ycen,yhigh,h))
-                newbase = min(900,max(100,newbase))
-                print "The new " + gain + " is " + str(newbase)
-                i.setParam(gain[:-1],(int(gain[-1]),newbase))
-            if h > 25:
-                h = h/2
-    return tune
+
+    h=100
+    while True:
+        for gain in gains:
+            base = i.query(gain)
+            print "Testing " + gain + " at " + str(base)
+            yield 2
+            ycen = readLatest(i)
+            print "Std:\t%f"%ycen
+            print "Testing " + gain + " at " + str(base-h)
+            i.setParam(gain[:-1],(int(gain[-1]),base-h))
+            yield 2
+            ylow = readLatest(i)
+            print "Std:\t%f"%ylow
+            print "Testing " + gain + " at " + str(base+h)
+            i.setParam(gain[:-1],(int(gain[-1]),base+h))
+            yield 2
+            yhigh = readLatest(i)
+            print "Std:\t%f"%yhigh
+            print "Set Complete"
+            newbase = int(findMin(base,ylow,ycen,yhigh,h))
+            newbase = min(900,max(100,newbase))
+            print "The new " + gain + " is " + str(newbase)
+            i.setParam(gain[:-1],(int(gain[-1]),newbase))
+        if h > 25:
+            h = h/2
             
 
 def controlThunk(conn,steptime=120):
@@ -261,8 +234,9 @@ def controlThunk(conn,steptime=120):
     count = 0
     starttime = 0
     command = ones
-    generator = command()
+    generator = command(i,coils,(1,1))
     n = generator.next()
+    print("Starting Main Loop")
     while True:
         if (not running) and (not conn.poll()):
             sleep(0.01)
@@ -274,7 +248,7 @@ def controlThunk(conn,steptime=120):
                     i.stop()
                 break
             if cmd==START:
-                generator = command(args[0],coils)
+                generator = command(i,coils,args[0])
                 n = generator.next()
                 i.updateRunnumber()
                 manifest = XMLManifest(i.getPath()+"Manifest.xml",
@@ -313,25 +287,7 @@ def controlThunk(conn,steptime=120):
             if cmd==QUERY:
                 conn.send(i.query(args[0]))
             if cmd==SET_COMMAND:
-                commval = args[0]
-                if commval == SET_TRIPLE:
-                    command = triple
-                elif commval == SET_FLIPPING:
-                    command = flip
-                elif commval == SET_FLIPPER_EFFICIENCY:
-                    command = flipperefficiency
-                elif commval == SET_CUR_SCAN:
-                    command = currentscan
-                elif commval == SET_THRESH_SCAN:
-                    print("Threshscan")
-                    command = makeThresholdScan(i)
-                elif commval == SET_GAIN_SCAN:
-                    command = makeGainScan(i)
-                    print("Command Set")
-                elif commval == SET_TUNE:
-                    command = makeDumper(i)
-                else:
-                    command = ones
+                command = args[0]
         if running:
             #if we've run long enough, start a new sub-run
             if clock()-starttime > steptime*n:
@@ -349,10 +305,10 @@ def controlThunk(conn,steptime=120):
                 mp["guide current"]=coils.getGuides()
                 mp["sample current"]=coils.getSample()
                 print("DEBUG: E-mail time")
-                if beamon and monitor_count/time < 16.0:
+                if beamon and monitor_count/time < 2.0:
                     mailmessage("LENS is down","I am not recieving many neutrons.  Is the beam off?",password)
                     beamon=False
-                elif not beamon and monitor_count/time > 16.0:
+                elif not beamon and monitor_count/time > 2.0:
                     mailmessage("LENS is up","I am recieving neutrons again.",password)
                     beamon=True    
                 for tri in range(1,9):
@@ -380,7 +336,7 @@ class Control:
         """Shuts down the control process when the object is destroyed"""
         self.conn.send((QUIT,()))
 
-    def start(self,command=SET_ONES,ratio=(1,1)):
+    def start(self,ratio=(1,1)):
         """Begins collecting data
         
         Keyword arguments:
@@ -392,10 +348,13 @@ class Control:
         always the positive current.
 
         """
-        self.conn.send((SET_COMMAND,(command,)))
         self.conn.send((START,(ratio,)))
 
-    def flippingrun(self,ratio):
+
+    def setCommand(self,command):
+        self.conn.send((SET_COMMAND,(command,)))
+
+    def flippingrun(self):
         """Begins collecting data with flipping between subruns.
 
         Keyword arguments:
@@ -403,16 +362,16 @@ class Control:
                  to negative flipper current
 
         """
-        self.start(SET_FLIPPING,ratio)
-    def triplerun(self,ratio):
+        self.setCommand(flip)
+    def triplerun(self):
         """Begins collecting three of the four spin states for checking
         the efficiency of the bender, supermirror, and analyzer.
 
         ratio -- the relative lengths of time to measure bsfa,bsa,and bfsfa
         
         """
-        self.start(SET_TRIPLE,ratio)
-    def quadrun(self,ratio):
+        self.setCommand(triple)
+    def quadrun(self):
         """Begins collecting all four flipping states for checking the
         flipper efficiency
 
@@ -420,21 +379,23 @@ class Control:
                 down-up, and down-down
         
         """
-        self.start(SET_FLIPPER_EFFICIENCY,ratio)
-    def curscan(self,ratio):
+        self.setCommand(flipperefficiency)
+    def curscan(self):
         """Performed a flipping run over a range of triangle currents
 
         ratio -- Scan through current on triangle pair one in both directions,
         using a 0.01 offset to mark the two different hysteresis states.
         
         """
-        self.start(SET_CUR_SCAN,ratio)
+        self.setCommand(currentscan)
     def threshscan(self):
-        self.start(SET_THRESH_SCAN,(1,1))
+        self.setCommand(makeThresholdScan)
+
     def tune(self):
-        self.start(SET_TUNE,(1,1))
+        self.setCommand(makeDumper)
+
     def gainscan(self):
-        self.start(SET_GAIN_SCAN,(1,1))
+        self.setCommand(makeGainScan)
         
     def stop(self):
         """Ends data collection"""
@@ -468,12 +429,12 @@ class Control:
 
     def allOn(self):
         """Turn on all of the power supplies to a default value"""
-        self.flipper(7)
+        self.flipper(5)
         self.phase(5)
         self.guides(5)
         self.sample(5)
         for i in range(1,9):
-            self.triangle(i,10)
+            self.triangle(i,5)
 
     def allOff(self):
         """Kill the current in all of the power supplies"""
@@ -494,7 +455,6 @@ def exit():
     quit()
 
 if __name__ == "__main__":
-    from Combiner import combine
     c=Control()
     d=c.detectorParameter
     q=c.query
