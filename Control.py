@@ -29,7 +29,7 @@ logging.basicConfig(level=logging.DEBUG,
                     format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
                     datefmt="%m-%d %H:%M",
                     filename="C:/Documents and Settings/sesaadmin/My Documents/Neutron Data/controllog.txt",
-                    filemode="w")
+                    filemode="a")
 console = logging.StreamHandler()#for writing to console
 console.setLevel(logging.INFO)
 formatter = logging.Formatter("%(message)s")#The console just needs the message
