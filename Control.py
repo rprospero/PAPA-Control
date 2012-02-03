@@ -339,14 +339,17 @@ class Control:
     """This object maintains a Control Process for running the instrument"""
     def __init__(self):
         """Create a control object"""
+        logging.debug("Creating Control object")
         parent_conn,child_conn = multiprocessing.Pipe()
         self.p=multiprocessing.Process(target=controlThunk,
                                        args=(child_conn,120))
+        logging.debug("Starting multiprocessing")
         self.p.start()
         self.conn=parent_conn
 
     def __del__(self):
         """Shuts down the control process when the object is destroyed"""
+        logging.debug("Killing Control Object")
         self.conn.send((QUIT,()))
 
     def start(self,ratio=(1,1)):
@@ -361,10 +364,12 @@ class Control:
         always the positive current.
 
         """
+        logging.debug("Starting Run")
         self.conn.send((START,(ratio,)))
 
 
     def setCommand(self,command):
+        logging.debug("Setting command")
         self.conn.send((SET_COMMAND,(command,)))
 
     def flippingrun(self):
@@ -375,6 +380,7 @@ class Control:
                  to negative flipper current
 
         """
+        logging.debug("Selecting Flipping Run")
         self.setCommand(flip)
     def triplerun(self):
         """Begins collecting three of the four spin states for checking
@@ -383,6 +389,7 @@ class Control:
         ratio -- the relative lengths of time to measure bsfa,bsa,and bfsfa
         
         """
+        logging.debug("Triple Run")
         self.setCommand(triple)
     def quadrun(self):
         """Begins collecting all four flipping states for checking the
@@ -392,6 +399,7 @@ class Control:
                 down-up, and down-down
         
         """
+        logging.debug("Quad Run")
         self.setCommand(flipperefficiency)
     def curscan(self):
         """Performed a flipping run over a range of triangle currents
@@ -400,41 +408,53 @@ class Control:
         using a 0.01 offset to mark the two different hysteresis states.
         
         """
+        logging.debug("Current Scan")
         self.setCommand(currentscan)
     def threshscan(self):
+        logging.debug("Threshold Scan")
         self.setCommand(makeThresholdScan)
 
     def tune(self):
+        logging.debug("Detector Tune")
         self.setCommand(makeDumper)
 
     def gainscan(self):
+        logging.debug("Gain Scan")
         self.setCommand(makeGainScan)
         
     def stop(self):
         """Ends data collection"""
+        logging.debug("Stopping Detector")
         self.conn.send((STOP,()))
 
     def flipper(self,val):
         """Set the current in the fliping solenoid"""
+        logging.debug("Setting Flipper to %f",val)
         self.conn.send((FLIPPER,(val,)))
     def phase(self,val):
         """Set the current in the phase coils"""
+        logging.debug("Setting phase to %f",val)
         self.conn.send((PHASE,(val,)))
     def guides(self,val):
         """Set the current in the guid fields"""
+        logging.debug("Setting guides to %f",val)
         self.conn.send((GUIDES,(val,)))
     def sample(self,val):
         """Set the current in the sample area"""
+        logging.debug("Setting sample to %f",val)
         self.conn.send((SAMPLE,(val,)))
     def triangle(self,tri,val):
         """Set the current in the chosen triangle"""
+        logging.debug("Setting triangle %i to %f",tri,val)
         self.conn.send((TRIANGLE,(tri,val)))
 
     def detectorParameter(self,parameter,val):
         """Set one of the status variables in the detector"""
+        logging.debug("Setting parameter %s to %f",parameter,val)
         self.conn.send((SET_PARAM,(parameter,val)))
     def query(self,parameter):
         """Prints out the value of the chosen status variable on the detector"""
+        logging.debug("Requesting parameter %s",parameter)
         self.conn.send((QUERY,(parameter,)))
         while not self.conn.poll():
             sleep(0.01)
@@ -442,6 +462,7 @@ class Control:
 
     def allOn(self):
         """Turn on all of the power supplies to a default value"""
+        logging.debug("Turning on all the power supplies.",val)
         self.flipper(5)
         self.phase(5)
         self.guides(5)
@@ -451,6 +472,7 @@ class Control:
 
     def allOff(self):
         """Kill the current in all of the power supplies"""
+        logging.debug("Turning off all the power supplies.")
         self.flipper(0)
         self.phase(0)
         self.guides(0)
