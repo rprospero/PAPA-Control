@@ -72,8 +72,10 @@ class Instrument:
         logging.info("Time:\t\t%f seconds"%(stop-self.starttime))
         logging.info("Detector:\t%d counts"%detector_count)
         logging.info("Monitor:\t%d counts"%monitor_count)
+        logging.debug("Saving Monitor File")
         with open(self.getMonitorFile(),"w") as stream:
                 self.mon.localSave(stream,(clock()-self.starttime)*1000)
+        logging.debug("Run Stopped")
         return (stop-self.starttime,monitor_count,detector_count)
 
     def setParam(self,option,value):

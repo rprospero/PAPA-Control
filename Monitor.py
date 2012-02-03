@@ -3,6 +3,7 @@
 import socket
 import struct
 import numpy as np
+import logging
 
 from time import sleep
 
@@ -109,12 +110,14 @@ class Monitor:
 
     def getHistoData(self,monitor=0):
         """Get the TOF data from the monitor"""
-        print("Getting Histogram Data")
+        logging.debug("Getting Histogram Data")
         self.s.send(self.packetHeader(self.GETBMHISTODATA,b'',monitor))
         response,_ = self.h.recvfrom(4096)
 #        response,_ = self.h.recvfrom(400,1)        
+        logging.debug("Unpack Header")
         (logtofres,tofres,bankindex,mintime,
          maxtime,datastarttime,logtof,numbins)=struct.unpack(self.MONTOF,response[:36])
+        logging.debug("Pulling Data")
         hist = np.frombuffer(response[36:],dtype=np.int32)
         return hist
 
