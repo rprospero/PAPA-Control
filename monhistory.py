@@ -6,7 +6,7 @@ import numpy as np
 
 basedir = "C:/Documents and Settings/sesaadmin/My Documents/Neutron Data/"
 
-def load(path):
+def history_load(path):
     base = os.path.dirname(basedir+"%04i/Manifest.xml"%path)
     manifest = XMLManifest(basedir+"%04i/Manifest.xml"%path,0)
     subruns = manifest.getRuns(base)
@@ -21,4 +21,4 @@ def load(path):
     print np.std(good)
     print np.mean(errs[counts >= 20])
 
-load(int(sys.argv[1]))
+history_load(int(sys.argv[1]))
