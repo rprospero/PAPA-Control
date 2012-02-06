@@ -33,17 +33,16 @@ class Instrument:
         """Update to the next data run"""
         self.subrun=0
         runnumber = self.config.nextRun()
-        self.mon.logout()
-        self.mon.login(bytes(str(runnumber)))
 
     def start(self):
         """Begin neutron collection"""
         self.subrun += 1
-        logging.info("Starting run %d.%04d" % (self.config.getRunnumber(),self.subrun))
+        runnumber = self.config.getRunnumber()
+        logging.info("Starting run %d.%04d" % (runnumber,self.subrun))
         self.det.runnumber(self.subrun)        
         self.det.directory(self.config.getDir())
         self.starttime = clock()        
-        self.mon.startrun(self.subrun)
+        self.mon.startrun(runnumber,self.subrun)
         self.det.start()
 
     def getMonitorFile(self):

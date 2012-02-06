@@ -96,11 +96,11 @@ class Monitor:
         self.loggedIn = False
         return self.getResp()
 
-    def startrun(self,runnumber):
+    def startrun(self,runnumber,subrun):
         """Start collecting monitor data"""
         logging.info("Starting Run")
         self.runnumber = runnumber
-        self.s.send(self.packetHeader(self.STARTALL,b'',runnumber))
+        self.s.send(self.packetHeader(self.STARTALL,b'',runnumber,subrun))
         self.running = True
         #return self.getResp()
 
