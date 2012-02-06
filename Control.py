@@ -410,6 +410,11 @@ class Control:
         """
         logging.debug("Current Scan")
         self.setCommand(currentscan)
+
+    def ones(self):
+        logging.debug("Single State Measurement")
+        self.setCommand(ones)
+
     def threshscan(self):
         logging.debug("Threshold Scan")
         self.setCommand(makeThresholdScan)
