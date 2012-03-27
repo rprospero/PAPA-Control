@@ -5,6 +5,7 @@ import Instrument
 import Coils
 import smtplib
 from XMLManifest import XMLManifest
+import json
 import multiprocessing
 from time import sleep,clock,localtime,asctime
 import reader
@@ -37,18 +38,18 @@ console.setFormatter(formatter)
 logging.getLogger("").addHandler(console)
 
 def mailmessage(subject,message,password):
-    fromaddress="Sesame.Beamline@gmail.com"
-    toaddresses=["Sesame.Beamline@gmail.com","adlwashi@indiana.edu",
-                 "pstonaha@indiana.edu","gtwarren@indiana.edu"]#,"helkaise@indiana.edu",
-#                 "8123205472@vtext.com"]
+    logging.info("Loading e-mail parameters:")
+    mail = {}
+    with open("C:/PAPA Control/trunk/mail.json","r") as jfile:
+        mail = json.load(jfile)
     logging.info("Sending e-mail: %s",message)
     try:
         server = smtplib.SMTP_SSL("smtp.gmail.com",465)
-        server.login(fromaddress,password)
-        server.sendmail(fromaddress,
-                        toaddresses,
-                        "FROM:\"SESAME Beamline\" <"+fromaddress+">\n"
-                        +"TO: "+",".join(toaddresses)+"\n"
+        server.login(mail.fromaddress,mail['password'])
+        server.sendmail(mail['fromaddress'],
+                        mail['toaddresses'],
+                        "FROM:\"SESAME Beamline\" <"+mail['fromaddress']+">\n"
+                        +"TO: "+",".join(mail['toaddresses'])+"\n"
                         +"SUBJECT:"+subject+"\n\n"+message)
         server.quit()
     except smtplib.SMTPException:
