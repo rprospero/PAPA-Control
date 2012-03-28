@@ -466,15 +466,15 @@ class Control:
             sleep(0.01)
         return self.conn.recv()
 
-    def allOn(self):
-        """Turn on all of the power supplies to a default value"""
+    def allOn(self,current=5):
+        """Turn on all of the power supplies to a constant value.  The default is five amps."""
         logging.debug("Turning on all the power supplies.",val)
-        self.flipper(5)
-        self.phase(5)
-        self.guides(5)
-        self.sample(5)
+        self.flipper(current)
+        self.phase(current)
+        self.guides(current)
+        self.sample(current)
         for i in range(1,9):
-            self.triangle(i,5)
+            self.triangle(i,current)
 
     def allOff(self):
         """Kill the current in all of the power supplies"""
