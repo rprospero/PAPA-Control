@@ -14,3 +14,5 @@ if __name__=='__main__':
     for i in range(10):
         print "x%dGain\t%d" % (i,d["x%dGain"%i])
         print "y%dGain\t%d" % (i,d["y%dGain"%i])
+    for i in ["strobeGain","EnergyGain","ThresholdGain"]:
+        print "%s\t%d" % (i,d[i])
