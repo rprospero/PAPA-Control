@@ -42,18 +42,36 @@ def mailmessage(subject,message,password):
     mail = {}
     with open("C:/PAPA Control/trunk/mail.json","r") as jfile:
         mail = json.load(jfile)
-    logging.info("Sending e-mail: %s",message)
+    toaddress = mail['toaddresses']
+    fromaddress = mail['fromaddress']
+    password = mail['password']
+    logging.debug("Sending e-mail: %s",message)
+    logging.debug("E-mail sender: %s",fromaddress)
+    logging.debug("E-mail sender: %s",str(toaddress))
     try:
         server = smtplib.SMTP_SSL("smtp.gmail.com",465)
-        server.login(mail.fromaddress,mail['password'])
-        server.sendmail(mail['fromaddress'],
-                        mail['toaddresses'],
-                        "FROM:\"SESAME Beamline\" <"+mail['fromaddress']+">\n"
-                        +"TO: "+",".join(mail['toaddresses'])+"\n"
+        logging.debug("Established smtp connection")
+        server.login(fromaddress,password)
+        logging.debug("Logged into mail server")
+        server.sendmail(fromaddress,
+                        toaddress,
+                        "FROM:\"SESAME Beamline\" <"+fromaddress+">\n"
+                        +"TO: "+",".join(toaddress)+"\n"
                         +"SUBJECT:"+subject+"\n\n"+message)
+        logging.debug("Mail sent")
         server.quit()
     except smtplib.SMTPException:
         logging.error("Failed to connect to mail server",exc_info=true)
+    except smtplib.SMTPHeloError:
+        logging.error("No Helo from server",exc_info=true)
+    except smtplib.SMTPAuthenticationError:
+        logging.error("Invalid username and password",exc_info=true)
+    except smtplib.SMTPException:
+        logging.error("No authentication method available",exc_info=true)
+    except Exception as e:
+        logging.error("Unknown exception: %s"%str(type(e)))
+        logging.error("Exception arguments: %s"%str(e.args))
+        logging.error("Exception: %s"%str(e))
 
 def ones(i,coils,ratio):
     while True: yield 1
