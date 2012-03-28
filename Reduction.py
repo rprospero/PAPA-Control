@@ -63,7 +63,7 @@ def fr(run,name,mins=(183,227),maxs=(234,302)):
 def singleplot(run,name,mins=(148,223),maxs=(240,302)):
     data = spectrum(run,name,mins,maxs)
     data[np.isnan(data)]=0
-    plt.plot(np.arange(200)*0.1,data,"r*")
+    plt.plot(np.arange(200)*0.1,data,"r-")
     plt.show()
 
 def echoplot(run,names,mins=(148,223),maxs=(240,302),outfile=None):
