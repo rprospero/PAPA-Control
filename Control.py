@@ -413,7 +413,7 @@ class Control:
         self.setCommand(currentscan)
 
     def ones(self):
-        """Set the instrument to run in a single flipper state""".
+        """Set the instrument to run in a single flipper state"""
         logging.debug("Single State Measurement")
         self.setCommand(ones)
 
