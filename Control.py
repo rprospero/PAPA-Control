@@ -460,7 +460,7 @@ class Control:
 
     def detectorParameter(self,parameter,val):
         """Set one of the status variables in the detector"""
-        logging.debug("Setting parameter %s to %f",parameter,val)
+        logging.debug("Setting parameter %s to %s",parameter,str(val))
         self.conn.send((SET_PARAM,(parameter,val)))
     def query(self,parameter):
         """Prints out the value of the chosen status variable on the detector"""
