@@ -413,18 +413,22 @@ class Control:
         self.setCommand(currentscan)
 
     def ones(self):
+        """Set the instrument to run in a single flipper state""".
         logging.debug("Single State Measurement")
         self.setCommand(ones)
 
     def threshscan(self):
+        """Run a threshold scan on the detector PMTs"""
         logging.debug("Threshold Scan")
         self.setCommand(makeThresholdScan)
 
     def tune(self):
+        """Attempt to tune the PMTs in the detector"""
         logging.debug("Detector Tune")
         self.setCommand(makeDumper)
 
     def gainscan(self):
+        """Scan the gains for the PMTs"""
         logging.debug("Gain Scan")
         self.setCommand(makeGainScan)
         
