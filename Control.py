@@ -62,7 +62,7 @@ def flip(i,coils,ratio):
     (n,d)=ratio
     while True:
         yield n
-        coils.guides(-1*coils.getGuides())        
+        coils.sample(-1*coils.getSample())        
         (n,d)=(d,n)
 
 def triple(i,coils,ratio):
