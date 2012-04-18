@@ -8,10 +8,10 @@ from optparse import OptionParser
 
 basedir = "C:/Documents and Settings/sesaadmin/My Documents/Neutron Data/"
 
-def raw(run,name):
+def raw(run,name,start=50,end=100):
     p = PelFile(basedir+"%04i/" % run + name+".pel")
     mon = MonFile(basedir+"%04i/" % run + name+".pel.txt",False)
-    val = np.sum(p.make3d()[:,:,50:100],axis=2)
+    val = np.sum(p.make3d()[:,:,start:end],axis=2)
     print val.shape
     spectrum_total = np.sum(mon.spec)
     return val/spectrum_total
@@ -41,18 +41,22 @@ if __name__=='__main__':
     parser.add_option("--cutoff",action="store",type="float",help="Minimum count rate",default=1e-6)    
     parser.add_option("--plot",action="store_true")
     parser.add_option("--save",action="store",type="string",help="File to save data")
+    parser.add_option("--min",action"store",type"int",help="Beginning wavelength in 1/10 Angstrom units (e.g. 57 = 5.7 Angstoms).  The default value is 50",default=50)
+    parser.add_option("--max",action"store",type"int",help="Ending wavelength in 1/10 Angstrom units (e.g. 57 = 5.7 Angstoms).  The default value is 100",default=100)
 
     (options,runs) = parser.parse_args()
 
     runs = [int(x) for x in runs]
 
+    start=options.start
+    stop=options.stop
 
-    w = raw(runs[-1],"w")
+    w = raw(runs[-1],"w",start,stop)
 
     f,f1,w = getf(w,
-                raw(runs[-1],"x"),
-                raw(runs[-1],"y"),
-                raw(runs[-1],"z"))
+                raw(runs[-1],"x",start,stop),
+                raw(runs[-1],"y",start,stop),
+                raw(runs[-1],"z",start,stop))
 
     if options.plot:
         f[w<options.cutoff] = 0
