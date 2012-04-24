@@ -76,6 +76,27 @@ def mailmessage(subject,message,password):
 def ones(i,coils,ratio):
     while True: yield 1
 
+def makeFlip(ps="flipper"):
+    def flip(i,coils,ratio):
+        (n,d)=ratio
+        if ps == "flipper":
+            setter = coils.flipper
+            getter = coils.getFlipper
+        elif ps == "guides":
+            setter = coils.guides
+            getter = coils.getGuides()
+        elif ps == "phase":
+            setter = coils.phase
+            getter = coils.getPhase()
+        elif ps == "sample":
+            setter = coils.sample
+            getter = coils.getSample()
+        while True:
+            yield n
+            setter(-1*getter())
+            (n,d)=(d,n)
+    return flip
+
 def flip(i,coils,ratio):
     (n,d)=ratio
     while True:
@@ -391,16 +412,16 @@ class Control:
         logging.debug("Setting command")
         self.conn.send((SET_COMMAND,(command,)))
 
-    def flippingrun(self):
+    def flippingrun(self,ps="flipper"):
         """Begins collecting data with flipping between subruns.
 
-        Keyword arguments:
-        ratio -- a tuple containing the ratio of positive 
-                 to negative flipper current
+        Keyword arguments: ps -- A string containing the name of the
+        power supply which needs to be flipped.  Acceptible values are
+        "flipper", "guides", "phase", and "sample".
 
         """
         logging.debug("Selecting Flipping Run")
-        self.setCommand(flip)
+        self.setCommand(makeFlip(ps))
     def triplerun(self):
         """Begins collecting three of the four spin states for checking
         the efficiency of the bender, supermirror, and analyzer.
