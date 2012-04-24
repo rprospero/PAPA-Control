@@ -58,7 +58,7 @@ def save(path,minmon,keys,runsets):
             detcount = int(r.find('Detector').get('count'))
             monpath = os.path.join(base,r.find('Monitor').get('path'))
             detpath = os.path.join(base,r.find('Detector').get('path'))
-            if time <= 0 or moncount/time < minmon:
+            if time <= 0 or moncount/time < minmon or moncount/time>10*minmon:
 #                print("Dropping subrun %s as the count rate is too low"%num)
                 continue
             tottime += time
