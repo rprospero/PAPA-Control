@@ -41,8 +41,8 @@ if __name__=='__main__':
     parser.add_option("--cutoff",action="store",type="float",help="Minimum count rate",default=1e-6)    
     parser.add_option("--plot",action="store_true")
     parser.add_option("--save",action="store",type="string",help="File to save data")
-    parser.add_option("--min",action"store",type"int",help="Beginning wavelength in 1/10 Angstrom units (e.g. 57 = 5.7 Angstoms).  The default value is 50",default=50)
-    parser.add_option("--max",action"store",type"int",help="Ending wavelength in 1/10 Angstrom units (e.g. 57 = 5.7 Angstoms).  The default value is 100",default=100)
+    parser.add_option("--start",action="store",type="int",help="Beginning wavelength in 1/10 Angstrom units (e.g. 57 = 5.7 Angstoms).  The default value is 50",default=50)
+    parser.add_option("--stop",action="store",type="int",help="Ending wavelength in 1/10 Angstrom units (e.g. 57 = 5.7 Angstoms).  The default value is 100",default=100)
 
     (options,runs) = parser.parse_args()
 
