@@ -22,7 +22,7 @@ if __name__=='__main__':
     ys = [p.data & 0x7FF for p in ps]
 
     plt.hist(ys[0],bins=np.arange(512/options.smooth)*options.smooth,
-             histtype="stepfilled",normed=True)
+             histtype="step",normed=True,color="red")
     plt.hist(ys[1],bins=np.arange(512/options.smooth)*options.smooth,
              histtype="step",normed=True)
     plt.show()
