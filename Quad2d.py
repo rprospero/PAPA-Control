@@ -31,6 +31,9 @@ if __name__=='__main__':
     parser.add_option("--save",action="store",type="string",help="File to save data")
     parser.add_option("--start",action="store",type="int",help="Beginning wavelength in 1/10 Angstrom units (e.g. 57 = 5.7 Angstoms).  The default value is 50",default=50)
     parser.add_option("--stop",action="store",type="int",help="Ending wavelength in 1/10 Angstrom units (e.g. 57 = 5.7 Angstoms).  The default value is 100",default=100)
+    parser.add_option("--display",action="store",type="choice",choices=["cryo","solenoid","instrument"],
+                      help="Whether to plot the efficiency of the cryo flipper, the solenoid"+
+                      " flipper, or the instrument")
 
     (options,runs) = parser.parse_args()
 
@@ -47,11 +50,17 @@ if __name__=='__main__':
                                        raw(runs[-1],"z",start,stop))
 
     if options.plot:
-        f[n<options.cutoff] = 0
+        if options.display=="cryo":
+            plotdata=f
+        if options.display=="solenoid":
+            plotdata=f1
+        if options.display=="instrument":
+            plotdata=papb
+        plotdata[n<options.cutoff] = 0
         plt.spectral()
         #plt.gray()
         #plt.spring()
-        plt.imshow(f,vmin=options.vmin,vmax=1)
+        plt.imshow(plotdata,vmin=options.vmin,vmax=1)
         plt.show()
 
     if options.save:
