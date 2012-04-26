@@ -174,4 +174,8 @@ if __name__=='__main__':
 
     if options.save:
         out = np.vstack((np.arange(0,20,0.1*binning),f,ferr,f1,f1err,papb,papberr,n,nerr))
-        np.savetxt(options.save, np.transpose(out))
+        with open(options.save,"w") as outfile:
+            outfile.write(
+                "wave\tcryo\tcryoerr\tsolenoid\tsolenoiderr\t"+
+                "instrument\tinstrumenterr\tintensity\tinternsityerr\n")
+            np.savetxt(options.save, np.transpose(out))

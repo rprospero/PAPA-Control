@@ -56,7 +56,9 @@ if __name__=='__main__':
 
     if options.save:
         with open(options.save,"w") as outfile:
-            outfile.write("x\ty\tcryo\tsolenoid\tintensity\n")
+            outfile.write(
+                "wave\tcryo\tcryoerr\tsolenoid\tsolenoiderr\t"+
+                "instrument\tinstrumenterr\tintensity\tinternsityerr\n")
             for x in range(512):
                 for y in range(512):
                     outfile.write(
