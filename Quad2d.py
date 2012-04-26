@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import Combiner
 import numpy as np
 from optparse import OptionParser
+from QuadReduction import getf
 
 
 basedir = "C:/Documents and Settings/sesaadmin/My Documents/Neutron Data/"
@@ -15,19 +16,6 @@ def raw(run,name,start=50,end=100):
     print val.shape
     spectrum_total = np.sum(mon.spec)
     return val/spectrum_total
-
-
-def getf(w,x,y,z):
-
-#    plt.plot(w,"r-",x,"g-",y,"b-",z,"k-")
-#    plt.show()
-
-    f = (-w+x+y-z)/(y-z)/2
-    f = (1+f)/2
-    f1 = (-w+x+y-z)/(x-z)/2
-    f1 = (1+f1)/2
-
-    return (f,f1,w)
 
 
 if __name__=='__main__':
@@ -53,13 +41,13 @@ if __name__=='__main__':
 
     w = raw(runs[-1],"w",start,stop)
 
-    f,f1,w = getf(w,
-                raw(runs[-1],"x",start,stop),
-                raw(runs[-1],"y",start,stop),
-                raw(runs[-1],"z",start,stop))
+    f,df,f1,df1,papb,dpapb,n,dn = getf(w,
+                                       raw(runs[-1],"x",start,stop),
+                                       raw(runs[-1],"y",start,stop),
+                                       raw(runs[-1],"z",start,stop))
 
     if options.plot:
-        f[w<options.cutoff] = 0
+        f[n<options.cutoff] = 0
         plt.spectral()
         #plt.gray()
         #plt.spring()
@@ -71,6 +59,9 @@ if __name__=='__main__':
             outfile.write("x\ty\tcryo\tsolenoid\tintensity\n")
             for x in range(512):
                 for y in range(512):
-                    outfile.write("%i\t%i\t%e\t%e\t%e\n"%(x,y,f[x,y],
-                                                          f1[x,y],
-                                                          w[x,y]))
+                    outfile.write(
+                        "%i\t%i\t%e\t%e\t%e\t%e\t%e\t%e\t%e\t%e\n"%
+                        (x,y,f[x,y],df[x,y],
+                         f1[x,y],df1[x,y]
+                         papb[x,y],dpapb[x,y],
+                         n[x,y],dn[x,y]))

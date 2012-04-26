@@ -30,9 +30,9 @@ def export(runs,minmon=16):
     #z -> all flippers off
     w = [k for k in keys if float(k[2])<0
            and float(k[3])<0]
-    x = [k for k in keys if float(k[2])<0
+    y = [k for k in keys if float(k[2])<0
            and float(k[3])>0]
-    y = [k for k in keys if float(k[2])>0
+    x = [k for k in keys if float(k[2])>0
            and float(k[3])<0]
     z = [k for k in keys if float(k[2])>0
            and float(k[3])>0]
@@ -68,11 +68,26 @@ def rebin(x):
 
 def rawspectrum(run,name,mins=(183,227),maxs=(234,302)):
     p = PelFile(basedir+"%04i/" % run + name+".pel")
+
     mon = MonFile(basedir+"%04i/" % run + name+".pel.txt",False)
+    spectrum_total = np.sum(mon.spec)
+
+    #get the data spectrum
     val = p.make1d(mins,maxs)
     val = rebin(val)
     err = np.sqrt(val)
-    spectrum_total = np.sum(mon.spec)
+
+    # get the background spectrum
+    x = 512 - (maxs[0]-mins[0])
+    y = 512 - (maxs[1]-mins[1])
+    bval = p.make1d((x,y),(512,512))
+    bval = rebin(bval)
+    berr = np.sqrt(bval)
+
+    val -= bval
+
+    err = np.sqrt(err**2+berr**2)
+
     return (val/spectrum_total,err/spectrum_total)
 
 def getf(ws,xs,ys,zs):
@@ -84,10 +99,10 @@ def getf(ws,xs,ys,zs):
 #    plt.plot(w,"r-",x,"g-",y,"b-",z,"k-")
 #    plt.show()
 
-    f = (-w+x+y-z)/(y-z)/2
-    f = (1+f)/2
-    f1 = (-w+x+y-z)/(x-z)/2
-    f1 = (1+f1)/2
+    f = (x-w)/(y-z)
+    f1 = (y-w)/(x-z)
+    n = 2*(w*z-x*y)/(w+z-x-y)
+    papb = (x-z)*(z-y)/(x*y-w*z)
 
     ymz = (y-z)**2
     wmx = (w-x)**2
@@ -108,7 +123,19 @@ def getf(ws,xs,ys,zs):
     f1err = np.sqrt(wterm+xterm+yterm+zterm)/(x-z)**2/2
     f1err /= 2 #To account for the conversion between probability and polarization.
 
-    return (f,ferr,f1,f1err)
+    papberr=1/(x*y-w*z)**2*Sqrt(((x-z)*(y-z)*z*dw)**2+
+                                ((w-y)*(y-z)*z*dx)**2+
+                                ((w-x)*(x-z)*z*dy)**2+
+                                (x*y*(x+y-2*z)+w*(-x*y+z**2)**2*dz**2))
+
+    nerr = 2*np.sqrt((((x-z)*(y-z)*dw)**2+
+                      ((w-y)*(y-z)*dx)**2+
+                      ((w-x)*(x-z)*dy)**2+
+                      ((w-x)*(w-y)*dz)**2)/
+                     (w-x-y+z)**4)
+                      
+
+    return (f,ferr,f1,f1err,papb,papberr,n,nerr)
 
 if __name__=='__main__':
 
@@ -133,17 +160,18 @@ if __name__=='__main__':
         export(runs,options.mon)
 
 
-    f,ferr,f1,f1err = getf(rawspectrum(runs[-1],"w",(options.xmin,options.ymin),(options.xmax,options.ymax)),
+    f,ferr,f1,f1err,papa,papberr,n,nerr = getf(rawspectrum(runs[-1],"w",(options.xmin,options.ymin),(options.xmax,options.ymax)),
                   rawspectrum(runs[-1],"x",(options.xmin,options.ymin),(options.xmax,options.ymax)),
                   rawspectrum(runs[-1],"y",(options.xmin,options.ymin),(options.xmax,options.ymax)),
                   rawspectrum(runs[-1],"z",(options.xmin,options.ymin),(options.xmax,options.ymax)))
 
     plt.errorbar(np.arange(0,20,0.1*binning),f,ferr,fmt="b*")
     plt.errorbar(np.arange(0,20,0.1*binning),f1,f1err,fmt="r-")
+    plt.errorbar(np.arange(0,20,0.1*binning),papb,papberr,fmt="g+")
 #    plt.plot(np.arange(0,20,0.1*binning),f1,"r-")
     plt.ylim(0,1)
     plt.show()
 
     if options.save:
-        out = np.vstack((np.arange(0,20,0.1*binning),f,ferr,f1,f1err))
+        out = np.vstack((np.arange(0,20,0.1*binning),f,ferr,f1,f1err,papb,papberr,n,nerr))
         np.savetxt(options.save, np.transpose(out))
