@@ -210,12 +210,18 @@ class PelFile:
                 np.seterr(over='raise')
                 xarr %= 512
                 yarr %= 512
-                count = len(xarr)
-                for i in range(count):
-                        if 0 < timearr[i] < 200:
-                                cube[xarr[i],yarr[i],timearr[i]] += 1
-                        if i%10000 == 0:
-                                statusfunc(i*1000/count)
+
+
+		for i in range(200):
+			place = np.where(timearr==i)
+			if len(place[0]) > 0:
+				temp,xedges,_ = np.histogram2d(
+					xarr[place],
+					yarr[place],
+					bins = [np.arange(513),np.arange(513)])
+				cube[:,:,i] = temp
+			statusfunc(i*5.0)
+
                 stop=clock()
                 del xarr
                 del yarr
