@@ -16,7 +16,7 @@ def raw(run,name,start=50,end=100):
     val = np.sum(p.make3d()[:,:,start:end],axis=2)
     print val.shape
     spectrum_total = np.sum(mon.spec)
-    return val/spectrum_total
+    return val/spectrum_total,np.sqrt(val)/spectrum_total
 
 
 if __name__=='__main__':
@@ -51,6 +51,7 @@ if __name__=='__main__':
                       type="choice",
                       choices=["cryo","solenoid",
                                "instrument"],
+                      default="cryo",
                       help="Whether to plot the " +
                       "efficiency of the cryo flipper,"+
                       "the solenoid"+
@@ -63,12 +64,12 @@ if __name__=='__main__':
     start=options.start
     stop=options.stop
 
-    w = raw(runs[-1],"w",start,stop)
+    (w,dw) = raw(runs[-1],"w_new",start,stop)
 
-    data= getf(w,
-               raw(runs[-1],"x",start,stop),
-               raw(runs[-1],"y",start,stop),
-               raw(runs[-1],"z",start,stop))
+    data= getf((w,dw),
+               raw(runs[-1],"x_new",start,stop),
+               raw(runs[-1],"y_new",start,stop),
+               raw(runs[-1],"z_new",start,stop))
 
     f,df,f1,df1,papb,dpapb,n,dn = data
 
@@ -79,7 +80,7 @@ if __name__=='__main__':
             plotdata=f1
         if options.display=="instrument":
             plotdata=papb
-        plotdata[n<options.cutoff] = 0
+        plotdata[w<options.cutoff] = 0
         plt.spectral()
         #plt.gray()
         #plt.spring()
@@ -91,14 +92,13 @@ if __name__=='__main__':
             outfile.write(
                 "wave\tcryo\tcryoerr\tsolenoid\t"+
                 "solenoiderr\tinstrument\t"+
-                "instrumenterr\tintensity\t"+
-                "internsityerr\n")
+                "instrumenterr\tintensity\n")
             for x in range(512):
                 for y in range(512):
                     outfile.write(
                         ("%i\t%i\t%e\t%e\t%e\t%e\t"+
-                         "%e\t%e\t%e\t%e\n")%
+                         "%e\t%e\t%e\n")%
                         (x,y,f[x,y],df[x,y],
-                         f1[x,y],df1[x,y]
+                         f1[x,y],df1[x,y],
                          papb[x,y],dpapb[x,y],
-                         n[x,y],dn[x,y]))
+                         w[x,y]))
