@@ -90,7 +90,12 @@ def rawspectrum(run,name,mins=(183,227),maxs=(234,302)):
 
     err = np.sqrt(err**2+berr**2)
 
-    return (val/spectrum_total,err/spectrum_total)
+    val /= spectrum_total
+
+    err = np.sqrt((err/spectrum_total)**2+
+                  (err*np.sqrt(spectrum_total)/spectrum_total**2)**2)
+
+    return (val,err)
 
 def getf(ws,xs,ys,zs):
     (w,dw)=ws
