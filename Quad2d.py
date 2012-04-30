@@ -9,15 +9,19 @@ from QuadReduction import getf
 
 basedir = "C:/Documents and Settings/sesaadmin/My Documents/Neutron Data/"
 
-def raw(run,name,start=50,end=100):
+def raw(run,name,start=50,end=100,size=512):
     p = PelFile(basedir+"%04i/" % run + name+".pel")
     mon = MonFile(basedir+"%04i/" % run + name+
                   ".pel.txt",False)
-    val = np.sum(p.make3d()[:,:,start:end],axis=2)
+    val = np.sum(p.make3d(size)[:,:,start:end],axis=2)
     print val.shape
     spectrum_total = np.sum(mon.spec)
     return val/spectrum_total,np.sqrt(val)/spectrum_total
 
+def clean_data(out):
+    out[np.isnan(out)]=0
+    out[np.isposinf(out)]=1000
+    out[np.isneginf(out)]=-1000    
 
 if __name__=='__main__':
 
@@ -56,6 +60,8 @@ if __name__=='__main__':
                       "efficiency of the cryo flipper,"+
                       "the solenoid"+
                       " flipper, or the instrument")
+    parser.add_option("--size",action="store",type="int",default=512,
+                      help="Pixel resolution for rebinning.  Defaults to native 512x512 image.")
 
     (options,runs) = parser.parse_args()
 
@@ -64,12 +70,12 @@ if __name__=='__main__':
     start=options.start
     stop=options.stop
 
-    (w,dw) = raw(runs[-1],"w_new",start,stop)
+    (w,dw) = raw(runs[-1],"w_new",start,stop,options.size)
 
     data= getf((w,dw),
-               raw(runs[-1],"x_new",start,stop),
-               raw(runs[-1],"y_new",start,stop),
-               raw(runs[-1],"z_new",start,stop))
+               raw(runs[-1],"x_new",start,stop,options.size),
+               raw(runs[-1],"y_new",start,stop,options.size),
+               raw(runs[-1],"z_new",start,stop,options.size))
 
     f,df,f1,df1,papb,dpapb,n,dn = data
 
@@ -93,6 +99,7 @@ if __name__=='__main__':
                 "wave\tcryo\tcryoerr\tsolenoid\t"+
                 "solenoiderr\tinstrument\t"+
                 "instrumenterr\tintensity\n")
+            [clean_data(x) for x in (f,df,f1,df1,papb,dpapb,w)]
             for x in range(512):
                 for y in range(512):
                     outfile.write(
