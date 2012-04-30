@@ -176,6 +176,6 @@ if __name__=='__main__':
         out = np.vstack((np.arange(0,20,0.1*binning),f,ferr,f1,f1err,papb,papberr,n,nerr))
         with open(options.save,"w") as outfile:
             outfile.write(
-                "wave\tcryo\tcryoerr\tsolenoid\tsolenoiderr\t"+
-                "instrument\tinstrumenterr\tintensity\tinternsityerr\n")
+                "wave cryo cryoerr solenoid solenoiderr "+
+                "instrument instrumenterr intensity internsityerr\n")
             np.savetxt(options.save, np.transpose(out))
