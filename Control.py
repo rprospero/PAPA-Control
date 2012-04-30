@@ -301,15 +301,18 @@ def controlThunk(conn,steptime=120):
                     i.stop()
                 break
             if cmd==START:
-                generator = command(i,coils,args[0])
-                n = generator.next()
-                i.updateRunnumber()
-                manifest = XMLManifest(i.getPath()+"Manifest.xml",
-                                       i.getRunnumber())
-                i.start()
-                starttime = clock()
-                ltime = asctime(localtime())
-                running = True
+                if running:
+                    logging.warning("Please stop the current run before starting the next run.")
+                else:
+                    generator = command(i,coils,args[0])
+                    n = generator.next()
+                    i.updateRunnumber()
+                    manifest = XMLManifest(i.getPath()+"Manifest.xml",
+                                           i.getRunnumber())
+                    i.start()
+                    starttime = clock()
+                    ltime = asctime(localtime())
+                    running = True
             if cmd==STOP:
                 (time,monitor_count,detector_count) = i.stop()
                 mp = {"subrun":i.subrun} #Manifest Parameters
