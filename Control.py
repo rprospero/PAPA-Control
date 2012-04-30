@@ -124,19 +124,20 @@ def flipperefficiency(i,coils,ratio):
     #Flippers Negative -> Flipper 2 Front Field Down
     #Phase Negative -> Static Flipper Fields Down
     (uu,ud,du,dd) = ratio
-    coils.phase(7)
+    s = np.abs(coils.getSample())
+    p = np.abs(coils.getPhase())
     while True:
-        coils.flipper(7)
-        coils.guides(7)
+        coils.sample(s)
+        coils.phase(p)
         yield uu
-        coils.flipper(-7)
-        coils.guides(7)
+        coils.sample(-s)
+        coils.phase(p)
         yield ud
-        coils.flipper(7)
-        coils.guides(-7)
+        coils.sample(s)
+        coils.phase(-p)
         yield du
-        coils.flipper(-7)
-        coils.guides(-7)
+        coils.sample(-s)
+        coils.phase(-p)
         yield dd
 
 def currentscan(i,coils,ratio):
