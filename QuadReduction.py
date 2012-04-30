@@ -183,4 +183,7 @@ if __name__=='__main__':
             outfile.write(
                 "wave cryo cryoerr solenoid solenoiderr "+
                 "instrument instrumenterr intensity internsityerr\n")
+            out[np.isnan(out)]=0
+            out[np.isposinf(out)]=1000
+            out[np.isneginf(out)]=-1000
             np.savetxt(options.save, np.transpose(out))
