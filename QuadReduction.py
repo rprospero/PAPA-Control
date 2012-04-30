@@ -78,11 +78,13 @@ def rawspectrum(run,name,mins=(183,227),maxs=(234,302)):
     err = np.sqrt(val)
 
     # get the background spectrum
-    x = 512 - (maxs[0]-mins[0])
-    y = 512 - (maxs[1]-mins[1])
-    bval = p.make1d((x,y),(512,512))
+    bval = p.make1d((412,412),(512,512))
     bval = rebin(bval)
     berr = np.sqrt(bval)
+
+    #normalize background to beam size
+    bval *= (maxs[0]-mins[0])/100*(maxs[1]-mins[1])/100
+    berr *= (maxs[0]-mins[0])/100*(maxs[1]-mins[1])/100
 
     val -= bval
 
