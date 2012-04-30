@@ -182,7 +182,7 @@ class PelFile:
                 timearr *= 3.956034e-7/(distanceToDetector+distanceToG4)/1e-10*1e-6*10 #The last 10 is to handle fractional angstroms
                 return timearr
 
-        def make3d(self):
+        def make3d(self,size=512):
                 """Make a 3D histogram from the raw data."""
                 print("Cubing Image")
                 start=clock()                
@@ -191,7 +191,7 @@ class PelFile:
                 sd =self.data
                 i=0;
 
-                cube = np.zeros([self.imDim,self.imDim,200],dtype=np.float32)
+                cube = np.zeros([size,size,200],dtype=np.float32)
 
                 #If there's no data, return an empty array
                 if l==0:
@@ -218,7 +218,7 @@ class PelFile:
 				temp,xedges,_ = np.histogram2d(
 					xarr[place],
 					yarr[place],
-					bins = [np.arange(513),np.arange(513)])
+					bins = [np.arange(0,513,512/size),np.arange(0,513,512/size)])
 				cube[:,:,i] = temp
 			statusfunc(i*5.0)
 
