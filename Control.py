@@ -141,17 +141,29 @@ def flipperefficiency(i,coils,ratio):
         yield dd
 
 def currentscan(i,coils,ratio):
-    (n,d)=ratio
+    """
+    Runs a current scan on the guides slipper while flipping on the
+    sample flipper.  This function is designed as a command for the
+    control object.
+    
+
+    i = instrument object
+    coils = coils object
+    ratio = a tuple of form:
+
+    ((n,d),currents) where
+    n = number of two minute units to spend in the up state
+    d = number of two minute units to spend in the down state
+    currents = a list of currents to try on the guides supply.
+    """
+
+    ((n,d),currents)=ratio
     while True:
-        for cur in [2.0 + x/20.0 for x in range(61)]:
-#            for i in range(1,5):
-#            coils.triangle(8,cur)
-            coils.phase(cur)
+        for cur in currents:
+            coils.guides(cur)
             yield n
-#            coils.flipper(-1*coils.getFlipper())
             coils.sample(-1*coils.getSample())
             yield d
-#            coils.flipper(-1*coils.getFlipper())
             coils.sample(-1*coils.getSample())
 
 def gainscan(i,coils,ratio):
