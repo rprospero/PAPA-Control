@@ -124,11 +124,9 @@ def getf(ws,xs,ys,zs):
     print "y contribution: %f"%(np.sqrt(np.sum(yterm))*1000)
     print "z contribution: %f"%(np.sqrt(np.sum(zterm))*1000)
 
-    ferr = np.sqrt(wterm+xterm+yterm+zterm)/(y-z)**2/2
-    ferr /= 2 #To account for the conversion between probability and polarization.
+    ferr = np.sqrt(wterm+xterm+yterm+zterm)/(y-z)**2
 
-    f1err = np.sqrt(wterm+xterm+yterm+zterm)/(x-z)**2/2
-    f1err /= 2 #To account for the conversion between probability and polarization.
+    f1err = np.sqrt(wterm+xterm+yterm+zterm)/(x-z)**2
 
     papberr=1/(x*y-w*z)**2*np.sqrt(((x-z)*(y-z)*z*dw)**2+
                                    ((w-y)*(y-z)*z*dx)**2+
