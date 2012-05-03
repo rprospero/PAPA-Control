@@ -124,11 +124,15 @@ def flipperefficiency(i,coils,ratio):
     #Flippers Negative -> Flipper 2 Front Field Down
     #Phase Negative -> Static Flipper Fields Down
     (uu,ud,du,dd) = ratio
-    s = np.abs(coils.getSample())
-    p = np.abs(coils.getPhase())
+    s = abs(coils.getSample())
+    p = abs(coils.getPhase())
+    logging.debug("Acquired default currents for efficiency run.")
+    logging.debug("s = %s"%(str(s)))
+    logging.debug("p = %s"%(str(p)))
     while True:
         coils.sample(s)
         coils.phase(p)
+        logging.debug("Yielding flipper efficiency state")
         yield uu
         coils.sample(-s)
         coils.phase(p)
