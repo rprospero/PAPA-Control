@@ -96,7 +96,7 @@ if __name__=='__main__':
     if options.save:
         with open(options.save,"w") as outfile:
             outfile.write(
-                "wave\tcryo\tcryoerr\tsolenoid\t"+
+                "x\ty\tcryo\tcryoerr\tsolenoid\t"+
                 "solenoiderr\tinstrument\t"+
                 "instrumenterr\tintensity\n")
             [clean_data(x) for x in (f,df,f1,df1,papb,dpapb,w)]
