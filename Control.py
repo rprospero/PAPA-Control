@@ -219,12 +219,12 @@ def base(i,coils,ratio):
     while True:
         for gain in gains:
             init = dict[gain]
-            for x in range(init-200,init+201,100):
+            for x in range(init-100,init+150,50):
                 logging.info( gain)
                 logging.info( x)
                 i.setParam(gain[:-1],(int(gain[-1]),x))
-                yield 7
-                i.setParam(gain[:-1],(int(gain[-1]),init))
+                yield 2
+            i.setParam(gain[:-1],(int(gain[-1]),init))
 
 
 def dumper(i,coils,ratio):
