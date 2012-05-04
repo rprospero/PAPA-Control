@@ -321,7 +321,9 @@ def controlThunk(conn,steptime=120):
                 if running:
                     logging.warning("Please stop the current run before starting the next run.")
                 else:
+                    logging.debug("Creating generator")
                     generator = command(i,coils,args[0])
+                    logging.debug("Starting generator")
                     n = generator.next()
                     i.updateRunnumber()
                     manifest = XMLManifest(i.getPath()+"Manifest.xml",
@@ -329,6 +331,7 @@ def controlThunk(conn,steptime=120):
                     i.start()
                     starttime = clock()
                     ltime = asctime(localtime())
+                    logging.debug("Starting running")
                     running = True
             if cmd==STOP:
                 (time,monitor_count,detector_count) = i.stop()
