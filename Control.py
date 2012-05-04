@@ -171,15 +171,15 @@ def currentscan(i,coils,ratio):
             coils.sample(-1*coils.getSample())
 
 def gainscan(i,coils,ratio):
-    xgains = [320,415,357,375,568,412,447,530,650,0]
-    ygains = [550,377,415,345,365,490,407,352,430,505]
+    xgains = [320,415,357,375,568,300,250,200,450,0]
+    ygains = [720,377,415,545,365,490,407,175,190,505]
     while True:
         for (n,x,y) in zip(range(10),xgains,ygains):
             logging.info('Setting X%d and Y%d to ten',n,n)
             i.setParam('gain for X',(n,10))
             i.setParam('gain for Y',(n,10))
             logging.debug("Yielded")
-            yield 30
+            yield 2
             logging.info('Restoring X%d and Y%d from ten',n,n)
             i.setParam('gain for X',(n,x))
             i.setParam('gain for Y',(n,y))
