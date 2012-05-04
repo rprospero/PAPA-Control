@@ -1,0 +1,165 @@
+#+TITLE: Sesame Manual with He3 Detector
+#+AUTHOR: Adam Washington
+#+EMAIL: adlwashi@indiana.edu
+
+* Taking Data
+
+All data collection is performed through the "control" program (found
+in a shortcut on the desktop).
+
+** Starting the measurement of a single state
+
+In the control window, run the following commands:
+#+BEGIN_EXAMPLE
+c.ones()
+c.start()
+#+END_EXAMPLE
+
+** Starting a flipping measurement
+
+In the control window, run the following commands:
+
+#+BEGIN_EXAMPLE
+c.flippingrun()
+c.start((up,down))
+#+END_EXAMPLE
+
+Where /up/ and /down/ are the relative lengths of the up and down states,
+respectively.  Note that there are two sets of parentheses on *c.start*.
+
+** End a measurement
+
+In the control window, run 
+
+#+BEGIN_EXAMPLE
+c.stop()
+#+END_EXAMPLE
+
+** Set the flipper current
+
+The flipper current is controlled through the =guides= power supply.
+The flipper is nominally in the *up* state when =guides= is positive
+and in the =down= state when guides is negative.
+
+To set the current in the flipper, run
+
+#+BEGIN_EXAMPLE
+c.guides(current)
+#+END_EXAMPLE
+where /current/ is the desired current in the flipper.
+
+** Glossary
+   - =c.ones()= :: Sets the instrument to take data in a constant state
+   - =c.flippingrun()= :: Sets the instrument to alternate the flipper
+     current between subruns.
+   - =c.guides(x)= :: Sets the current in the flipper to /x/ amps.
+   - =c.start((up, down))= :: Starts a measurement run.  If the
+     instrument is in flipping mode, the the length of a subrun in the
+     up state will be /up/ * 120 seconds, while the length of a subrun
+     in the down state will be /down/ * 120 seconds.  If the
+     instrument is set to measure at a constant state, the up and down
+     parameters will be ignored and all subruns will be 120 seconds.
+
+* Analyzing Data
+
+Since we're using the raw data from the He3 monitor server, the
+standard PEL routines won't work.  I've written a series of command
+line utilities to handle the problem.  All of these should be run
+through the command prompt.  Their all found in the directory "=C:\PAPA
+Control\trunk="
+
+The simplest way to analyze the data is to run each of these commands
+in order on the run number for your latest run.
+
+** monhistory
+
+=monhistory= take a run number as a command line argument.  For
+instance,
+
+#+BEGIN_EXAMPLE
+monhistory 2555
+#+END_EXAMPLE
+
+will plot a histogram for the count rates of the sub runs in run 2555.
+This plot is a good way to find the lower cutoff point for
+measurements when the beam was down.  For convenience, once the plot
+is finished, the program will also print the mean, minimum, and
+standard deviation of all subruns with a count rate over 26, but under
+500.
+
+** MonitorFTP
+
+=MonitorFTP= will take a run number as a command line argument.  For
+instance,
+
+#+BEGIN_EXAMPLE
+MonitorFTP 2555
+#+END_EXAMPLE
+
+will copy all the data from run 2555 from the beam monitor computer
+(LENBM2) to the data directory for run 2555.  It will also print a
+list of all of the subrun files which were copied.
+
+** Reduction
+
+=Reduction= is a script to combine the subruns into a single data run.
+For instance,
+
+#+BEGIN_EXAMPLE
+Reduction --export --mon 77 2554 2555
+#+END_EXAMPLE
+
+Will combine all the subruns in runs /2554/ and /2555/ whose count
+rates were above /77/ counts per second and put the combined up state
+counts into "=up_he.dat=" and the combined down state counts into
+"=down_he.dat=".  The files will be put into the data directory of the
+last run number listed (2555, in this case).
+
+Finally, the program's last two lines will be the total measuring time
+of the up and down states.  These will be necessary for normalizing
+the counts in the quickplot and other measurements.
+
+*** Monitor Option
+    The smallest count rate to include.  Additionally, any runs with
+    more than 5 times the lower bound will also be dropped, to
+    eliminate other noise sources.
+*** Export Option
+    This flag tells the program to save the combined data into the
+    data directory.  For the runs taken with the He3 detector, you
+    will always want to do this.
+** quickplot
+
+=quickplot= makes a fast, rebinned plot of the data exported by the
+reduction.  For instance,
+
+#+BEGIN_EXAMPLE
+quickplot --plot both 2557 --export --uptime 3705.09 --downtime 10785.33
+#+END_EXAMPLE
+
+rebins the data in "=up_he.dat=" and "=down_he.dat=" in the data
+directory for run 2557, makes a plot of the polarization, and saves
+the rebinned data files into the data directory.
+
+The uptime and downtime are in seconds and are given by the output of
+the Reduction command.
+
+*** Plot option
+
+The options for plot are:
+
+- *up* :: Plot the intensity of the spin up state
+- *down* :: Plot the intensity of the spin down state
+- *both* :: Plot the intensity of both the spin up and down states.
+  The spin up state is red and the spin down state is green.
+- *polar* :: Plot the polarization.
+
+*** Export option
+
+Export causes quickplot to save the rebinned data to the data
+direction ith "_rebin" added to the name
+
+*** Bin option
+
+The bin option gives the chance to chose the bin size.  The default
+size is 25 microseconds.  I do not know what will happen if the bin
+size does not evenly divide into 50,000.
