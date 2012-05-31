@@ -131,7 +131,7 @@ def currentscan(i,coils,ratio):
     Runs a current scan on the guides slipper while flipping on the
     sample flipper.  This function is designed as a command for the
     control object.
-    
+
 
     i = instrument object
     coils = coils object
@@ -143,14 +143,68 @@ def currentscan(i,coils,ratio):
     currents = a list of currents to try on the guides supply.
     """
 
-    ((n,d),currents)=ratio
+    logging.debug(ratio)
+    (temp,currents)=ratio
+    logging.debug(currents)
+    (n,d) = temp
+    logging.debug(n)
+    logging.debug(str(coils))
+    logging.debug(coils.getFlipper())
+    logging.debug(coils.getFlipper())
+    logging.debug(abs(coils.getFlipper()))
+    coils.flipper(abs(coils.getFlipper()))
+    logging.debug("Initialized flipper coil")
     while True:
         for cur in currents:
-            coils.guides(cur)
+            logging.debug("Current " + str(cur))
+            coils.phase(cur)
+            logging.debug("Yield n" + str(n))
             yield n
-            coils.sample(-1*coils.getSample())
+            coils.flipper(-1*coils.getFlipper())
             yield d
-            coils.sample(-1*coils.getSample())
+            coils.flipper(-1*coils.getFlipper())
+
+def alphascan(i,coils,ratio):
+    """
+    Runs a current scan on the triangle currents while flipping on the
+    sample flipper.  This function is designed as a command for the
+    control object.
+
+
+    i = instrument object
+    coils = coils object
+    ratio = a tuple of form:
+
+    ((n,d),currents) where
+    n = number of two minute units to spend in the up state
+    d = number of two minute units to spend in the down state
+    currents = a list of currents to try on the guides supply.
+    """
+
+    logging.debug(ratio)
+    (temp,currents)=ratio
+    logging.debug(currents)
+    (n,d) = temp
+    logging.debug(n)
+    logging.debug(str(coils))
+    logging.debug(coils.getFlipper())
+    logging.debug(coils.getFlipper())
+    logging.debug(abs(coils.getFlipper()))
+    coils.flipper(abs(coils.getFlipper()))
+    logging.debug("Initialized flipper coil")
+    while True:
+        for cur in currents:
+            logging.debug("Current " + str(cur))
+            [coils.triangle(i,cur) for i in range(1,5)]
+            logging.debug("Yield n" + str(n))
+            yield n
+            coils.flipper(-1*coils.getFlipper())
+            yield d
+            coils.flipper(-1*coils.getFlipper())
+
+
+
+
 
 def gainscan(i,coils,ratio):
     xgains = [320,415,357,375,568,300,250,200,450,0]
@@ -447,11 +501,9 @@ class Control:
         logging.debug("Quad Run")
         self.setCommand(flipperefficiency)
     def curscan(self):
-        """Performed a flipping run over a range of triangle currents
+        """Performed a flipping run over a range of phase currents
 
-        ratio -- Scan through current on triangle pair one in both directions,
-        using a 0.01 offset to mark the two different hysteresis states.
-        
+        currents: list of current values to test on the phase coil
         """
         logging.debug("Current Scan")
         self.setCommand(currentscan)
