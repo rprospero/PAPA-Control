@@ -568,7 +568,7 @@ class Control:
 
     def allOn(self,current=5):
         """Turn on all of the power supplies to a constant value.  The default is five amps."""
-        logging.debug("Turning on all the power supplies.",current)
+        logging.debug("Turning on all the power supplies.",str(current))
         self.flipper(current)
         self.phase(current)
         self.guides(current)
