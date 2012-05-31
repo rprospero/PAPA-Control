@@ -69,9 +69,12 @@ def singleplot(run,name,mins=(148,223),maxs=(240,302)):
 def echoplot(run,names,mins=(148,223),maxs=(240,302),outfile=None):
     data = np.vstack(tuple([spectrum(run,name,mins,maxs) for name in names]))
     data[np.isnan(data)]=0
-    data = data[:,0:100]
-    xs = np.arange(100)*0.1
-    ys = np.array([float(x) for x in names])
+    data = data[:,50:100]
+    xs = np.arange(51)*0.1+5
+    ys = sorted([float(x) for x in names])
+    ys += [ys[-1]+ys[1]-ys[0]] #Add last element
+    ys = np.array(ys)
+    print ys
     plt.pcolor(xs,ys,data,vmin=-1,vmax=1)
     if outfile is None:
         plt.show()
@@ -147,7 +150,13 @@ if __name__=='__main__':
         if options.sortby is None:
             names = [""]
         else:
-            names = [str(x) for x in list(np.arange(options.start,options.stop,options.step))]
+            count = round((options.stop-options.start)/options.step)+1
+            names = [str(x) 
+                     for x in 
+                     np.linspace(
+                    options.start,
+                    options.stop,
+                    count)]
         if options.plot=="plot":
             print runs
             print names
@@ -156,6 +165,6 @@ if __name__=='__main__':
             echofr(runs[-1],names,(options.xmin,options.ymin),(options.xmax,options.ymax))
         elif options.plot=="diff":
             echodiff(runs[-1],names,187(options.xmin,options.ymin),(options.xmax,options.ymax))
-        elif optins.plot=="echo":
+        elif options.plot=="echo":
             echoplot(runs[-1],names,(options.xmin,options.ymin),(options.xmax,options.ymax))
 
