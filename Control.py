@@ -76,32 +76,14 @@ def mailmessage(subject,message,password):
 def ones(i,coils,ratio):
     while True: yield 1
 
-def makeFlip(ps="flipper"):
-    def flip(i,coils,ratio):
-        (n,d)=ratio
-        if ps == "flipper":
-            setter = coils.flipper
-            getter = coils.getFlipper
-        elif ps == "guides":
-            setter = coils.guides
-            getter = coils.getGuides()
-        elif ps == "phase":
-            setter = coils.phase
-            getter = coils.getPhase()
-        elif ps == "sample":
-            setter = coils.sample
-            getter = coils.getSample()
-        while True:
-            yield n
-            setter(-1*getter())
-            (n,d)=(d,n)
-    return flip
-
 def flip(i,coils,ratio):
     (n,d)=ratio
+    setter = coils.flipper
+    getter = coils.getFlipper()
+    setter(abs(getter()))
     while True:
         yield n
-        coils.sample(-1*coils.getSample())        
+        setter(-1*getter())
         (n,d)=(d,n)
 
 def triple(i,coils,ratio):
@@ -444,7 +426,7 @@ class Control:
 
         """
         logging.debug("Selecting Flipping Run")
-        self.setCommand(makeFlip(ps))
+        self.setCommand(flip)
     def triplerun(self):
         """Begins collecting three of the four spin states for checking
         the efficiency of the bender, supermirror, and analyzer.
