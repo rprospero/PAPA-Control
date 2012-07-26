@@ -151,15 +151,13 @@ def currentscan(i,coils,ratio):
     logging.debug(n)
     logging.debug(str(coils))
     logging.debug(coils.getFlipper())
-    logging.debug(coils.getFlipper())
-    logging.debug(abs(coils.getFlipper()))
-    coils.flipper(abs(coils.getFlipper()))
+    logging.debug(coils.getPhase())
     logging.debug("Initialized flipper coil")
     while True:
         for cur in currents:
-            logging.debug("Current " + str(cur))
-            coils.phase(cur)
-            logging.debug("Yield n" + str(n))
+            logging.info("Current " + str(cur))
+            coils.phase(float(cur))
+            logging.debug("Yield n: " + str(n))
             yield n
             coils.flipper(-1*coils.getFlipper())
             yield d
