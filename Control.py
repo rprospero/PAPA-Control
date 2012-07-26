@@ -10,6 +10,7 @@ import multiprocessing
 from time import sleep,clock,localtime,asctime
 import reader
 import numpy as np
+import sys
 
 #Signals for the control process
 QUIT=0
@@ -31,7 +32,7 @@ logging.basicConfig(level=logging.DEBUG,
                     datefmt="%m-%d %H:%M",
                     filename="C:/Documents and Settings/sesaadmin/My Documents/Neutron Data/controllog.txt",
                     filemode="a")
-console = logging.StreamHandler()#for writing to console
+console = logging.StreamHandler(sys.stdout)#for writing to console
 console.setLevel(logging.INFO)
 formatter = logging.Formatter("%(message)s")#The console just needs the message
 console.setFormatter(formatter)
