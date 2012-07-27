@@ -57,7 +57,7 @@ if __name__=='__main__':
     parser.add_option("--source",action="store",type="string",
                       default=source,help="Directory where the neutron data is stored.  Defaults to: %default")
     parser.add_option("--destination",action="store",type="string",
-                      default=source,help="Directory where the neutron data is to be copied.  Defaults to: %default")
+                      default=destination,help="Directory where the neutron data is to be copied.  Defaults to: %default")
     parser.add_option("--rate",action="store",type="int",default=10,
                       help="How many minutes to sleep between syncs.  Defaults to %default")
 
