@@ -29,8 +29,10 @@ def updated(dest,files):
     for file in files:
         backup = os.path.join(dest,os.path.basename(file))
         if not os.path.exists(backup):
+            print file
             yield file
         elif os.path.getmtime(file) > os.path.getmtime(backup):
+            print file
             yield file
 
 def runs_to_update(min,path):
@@ -43,12 +45,12 @@ def copy_new_files(dest,directory):
     if not os.path.exists(backup):
         os.makedirs(backup)
     for file in updated(backup,sources(directory)):
+        print file
         shutil.copyfile(file,os.path.join(backup,os.path.basename(file)))
         
 def sync(src,dest,min):
     for i in runs_to_update(min,src):
         copy_new_files(dest,i)
-        print i
 
 if __name__=='__main__':
     usage = "%prof [options] minimum_run_number"
